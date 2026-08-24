@@ -32,3 +32,9 @@ class Products(Base):
     description: Mapped[str]
     category_id: Mapped[int]
     brand_id: Mapped[int]
+
+class Images(Base):
+    __tablename__ = "images"
+    id_image: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int]
+    image_url: Mapped[str]
