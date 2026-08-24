@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.home import router as main_router
 from app.api.v1.home import router as category_router
+from app.api.v1.home import router as brand_router
+from app.api.v1.home import router as products_router
 from database import Base, engine
 
 
@@ -31,7 +33,8 @@ app.add_middleware(
 
 app.include_router(main_router, prefix="/api/v1", tags=["main"])
 app.include_router(category_router, prefix="/api/v1", tags=["category"])
-
+app.include_router(brand_router, prefix="/api/v1", tags=["brand"])
+app.include_router(products_router, prefix="/api/v1", tags=["product"])
 
 Base.metadata.create_all(bind=engine)
 
