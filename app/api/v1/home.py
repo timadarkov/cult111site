@@ -12,3 +12,11 @@ def get_info():
 @router.get("/category")
 def get_categories():
     return home_services.get_categories()
+
+@router.get("/brand")
+def get_brands():
+    return home_services.get_brands()
+
+@router.get("/product")
+def get_products():
+    return home_services.get_products()
