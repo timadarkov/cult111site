@@ -1,6 +1,6 @@
 from decimal import Decimal
-
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
 
@@ -24,17 +24,33 @@ class Brands(Base):
     id_brand: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
 
+class Images(Base):
+    __tablename__ = "images"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int] = mapped_column(
+    ForeignKey("products.id", ondelete="CASCADE")
+    )
+    image_url: Mapped[str]
+
+    product: Mapped["Products"] = relationship(
+    back_populates="images"
+    )
+
 class Products(Base):
     __tablename__ = "products"
-    id_product: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     price: Mapped[Decimal]
     description: Mapped[str]
-    category_id: Mapped[int]
-    brand_id: Mapped[int]
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("category.id_category", ondelete="CASCADE")
+    )
 
-class Images(Base):
-    __tablename__ = "images"
-    id_image: Mapped[int] = mapped_column(primary_key=True)
-    product_id: Mapped[int]
-    image_url: Mapped[str]
+    brand_id: Mapped[int] = mapped_column(
+        ForeignKey("brands.id_brand", ondelete="CASCADE")
+    )
+    images: Mapped[list["Images"]] = relationship(
+        back_populates="product",
+        cascade="all, delete-orphan"
+
+    )
