@@ -1,20 +1,9 @@
-from http.client import HTTPException
+from fastapi import HTTPException
 
 from database import SessionLocal
 
 from app.storage import product as product_storage
 
-
-
-
-
-
-def get_products():
-    db = SessionLocal()
-    try:
-        return product_storage.get_products(db)
-    finally:
-        db.close()
 
 def get_product_by_id(product_id: int):
     db = SessionLocal()
@@ -26,18 +15,17 @@ def get_product_by_id(product_id: int):
     finally:
         db.close()
 
-def get_products_by_category(category_id: int):
-    db = SessionLocal()
-    try:
-        products = product_storage.get_products_by_category(db, category_id)
-        return products
-    finally:
-        db.close()
 
-def get_products_by_brand(brand_id: int):
+def get_products(
+    category_id: int | None = None,
+    brand_id: int | None = None,
+):
     db = SessionLocal()
     try:
-        products = product_storage.get_products_by_brand(db, brand_id)
-        return products
+        return product_storage.get_products(
+            db,
+            category_id=category_id,
+            brand_id=brand_id,
+        )
     finally:
         db.close()

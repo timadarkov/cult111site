@@ -6,23 +6,21 @@ from app.services import product_services, image_services
 router = APIRouter()
 
 
-
-
-@router.get("/product", response_model=list[ProductSchemaOut])
-def get_products():
-    return product_services.get_products()
-
 @router.get("/product/{product_id}", response_model=ProductSchemaOut)
-def get_product_by_id(product_id: int):
+def get_product(product_id: int):
     return product_services.get_product_by_id(product_id)
 
-@router.get("/product/category/{category_id}", response_model=list[ProductSchemaOut])
-def get_products_by_category(category_id: int):
-    return product_services.get_products_by_category(category_id)
 
-@router.get("/product/brand/{brand_id}", response_model=list[ProductSchemaOut])
-def get_products_by_brand(brand_id: int):
-    return product_services.get_products_by_brand(brand_id)
+@router.get("/products", response_model=list[ProductSchemaOut])
+def get_products(
+    category_id: int | None = None,
+    brand_id: int | None = None,
+):
+    return product_services.get_products(
+        category_id=category_id,
+        brand_id=brand_id,
+    )
+
 
 @router.get("/image")
 def get_images():
