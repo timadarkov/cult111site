@@ -39,6 +39,3 @@ app.include_router(image_router, prefix="/api/v1", tags=["image"])
 
 
 Base.metadata.create_all(bind=engine)
-
-
-
