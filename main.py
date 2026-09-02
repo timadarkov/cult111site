@@ -1,14 +1,13 @@
 
 from fastapi import FastAPI
 from fastapi.responses import Response
-from pydantic import BaseModel, Field, field_validator
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.router_info import router as info_router
-from app.api.v1.router_category import router as category_router
-from app.api.v1.router_brand import router as brand_router
-from app.api.v1.router_product import router as products_router
-from app.api.v1.router_product import router as image_router
+from app.api.v1.public.router_info import router as info_router
+from app.api.v1.public.router_category import router as category_router
+from app.api.v1.public.router_brand import router as brand_router
+from app.api.v1.public.router_product import router as products_router
+from app.api.v1.public.router_product import router as image_router
 from database import Base, engine
 
 
@@ -28,14 +27,11 @@ app.add_middleware(
 )
 
 
-
-app.include_router(info_router, prefix="/api/v1", tags=["info"])
-app.include_router(category_router, prefix="/api/v1", tags=["category"])
-app.include_router(brand_router, prefix="/api/v1", tags=["brand"])
-app.include_router(products_router, prefix="/api/v1", tags=["product"])
-app.include_router(image_router, prefix="/api/v1", tags=["image"])
-
-
+app.include_router(info_router, prefix="/api/v1/public", tags=["info"])
+app.include_router(category_router, prefix="/api/v1/public", tags=["category"])
+app.include_router(brand_router, prefix="/api/v1/public", tags=["brand"])
+app.include_router(products_router, prefix="/api/v1/public", tags=["product"])
+app.include_router(image_router, prefix="/api/v1/public", tags=["image"])
 
 
 Base.metadata.create_all(bind=engine)

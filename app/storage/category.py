@@ -1,10 +1,7 @@
 from sqlalchemy.orm import Session
 
-from app.models.db import Category
+from app.models.category import Category
 
 
-
-
-
-def get_categories(db : Session) -> list[Category]:
+def get_categories(db: Session) -> list[Category]:
     return db.query(Category).all()
