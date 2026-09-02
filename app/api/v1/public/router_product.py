@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.schemas.info import ProductSchemaOut
+from app.schemas.product import ProductSchemaOut
 from app.services import product_services, image_services
 from app.dependency import get_db
 from fastapi import Depends

@@ -5,36 +5,18 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 
 
-class Info(Base):
-    __tablename__ = "info"
-    slug: Mapped[str] = mapped_column(primary_key=True)
-    info: Mapped[str]
-    owners: Mapped[str]
-    contacts: Mapped[str]
-
-
-class Category(Base):
-    __tablename__ = "category"
-    id_category: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
-
-
-class Brands(Base):
-    __tablename__ = "brands"
-    id_brand: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
-
 class Images(Base):
     __tablename__ = "images"
     id: Mapped[int] = mapped_column(primary_key=True)
     product_id: Mapped[int] = mapped_column(
-    ForeignKey("products.id", ondelete="CASCADE")
+        ForeignKey("products.id", ondelete="CASCADE")
     )
     image_url: Mapped[str]
 
     product: Mapped["Products"] = relationship(
-    back_populates="images"
+        back_populates="images"
     )
+
 
 class Products(Base):
     __tablename__ = "products"
