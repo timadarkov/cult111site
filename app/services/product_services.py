@@ -1,7 +1,5 @@
 from fastapi import HTTPException
 
-from database import SessionLocal
-
 from app.storage import product as product_storage
 
 from sqlalchemy.orm import Session

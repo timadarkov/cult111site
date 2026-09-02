@@ -55,3 +55,7 @@ docker-compose.override.yml
 
 #image
 /photos_r2
+
+# Certificates
+.pem
+certs/
