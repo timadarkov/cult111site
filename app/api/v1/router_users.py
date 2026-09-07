@@ -3,15 +3,17 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.dependency import get_db
 from app.schemas.auth import UserCreate
+
+
 router = APIRouter()
 
 
-@router.post("/create")
+@router.post("/users")
 def creare_users(user: UserCreate, db: Session = Depends(get_db)):
     return users_services.create_users(db, user)
 
 
-@router.get("/get")
+@router.get("/users")
 def get_users(
     username: str | None = None,
     email: str | None = None,
