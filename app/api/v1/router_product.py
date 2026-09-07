@@ -27,8 +27,3 @@ def get_products(
         brand_id=brand_id,
         db=db,
     )
-
-
-@router.get("/image")
-def get_images(db: Session = Depends(get_db)):
-    return image_services.get_images()
