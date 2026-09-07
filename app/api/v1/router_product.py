@@ -5,7 +5,10 @@ from app.dependency import get_db
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/products",
+    tags=["Products"],
+)
 
 
 @router.get("/product/{product_id}", response_model=ProductSchemaOut)

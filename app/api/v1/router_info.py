@@ -1,7 +1,10 @@
 from fastapi import APIRouter
 from app.services import info_services
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/info",
+    tags=["Info"],
+)
 
 
 @router.get("/info")

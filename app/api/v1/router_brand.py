@@ -2,7 +2,10 @@ from fastapi import APIRouter
 
 from app.services import brand_services
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/brands",
+    tags=["Brands"],
+)
 
 
 @router.get("/brand")
