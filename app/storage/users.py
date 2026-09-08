@@ -31,3 +31,7 @@ def get_users(db: Session, username: str | None = None, email: str | None = None
     if is_verified is not None:
         query = query.filter(User.is_verified == is_verified)
     return query.all()
+
+
+def get_user_by_username(db: Session, username: str) -> User | None:
+    return (db.query(User).filter(User.username == username).first())

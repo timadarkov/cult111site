@@ -33,3 +33,7 @@ def get_users(
         is_active=is_active,
         is_verified=is_verified,
     )
+
+
+def get_user_by_username(db: Session, username: str):
+    return users_storage.get_user_by_username(db, username)
