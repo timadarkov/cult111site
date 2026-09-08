@@ -5,7 +5,10 @@ from app.dependency import get_db
 from app.schemas.auth import UserCreate
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/users",
+    tags=["Users"],
+)
 
 
 @router.post("/users")

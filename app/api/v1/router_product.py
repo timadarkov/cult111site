@@ -11,12 +11,12 @@ router = APIRouter(
 )
 
 
-@router.get("/product/{product_id}", response_model=ProductSchemaOut)
+@router.get("/{product_id}", response_model=ProductSchemaOut)
 def get_product(product_id: int, db: Session = Depends(get_db)):
-    return product_services.get_product_by_id(product_id, db)
+    return product_services.get_product_by_id(db, product_id)
 
 
-@router.get("/products", response_model=list[ProductSchemaOut])
+@router.get("", response_model=list[ProductSchemaOut])
 def get_products(
     category_id: int | None = None,
     brand_id: int | None = None,

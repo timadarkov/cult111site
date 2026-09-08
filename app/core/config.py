@@ -16,12 +16,14 @@ class AuthJWT(BaseModel):
 
 class Settings(BaseSettings):
     Database_url: str
+    host_url: list[str]
 
     auth_jwt: AuthJWT = AuthJWT()
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=BASE_DIR / ".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
 
 
