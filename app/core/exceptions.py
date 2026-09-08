@@ -28,6 +28,20 @@ async def validation_exception_handler(
                 "detail": "Password must be no more than 24 characters"
             }
         )
+    elif field == "username" and error_type == "string_too_short":
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": "Username must be at least 6 characters"
+            }
+        )
+    elif field == "username" and error_type == "string_too_long":
+        return JSONResponse(
+            status_code=422,
+            content={
+                "detail": "Username must be no more than 24 characters"
+            }
+        )
 
     return JSONResponse(
         status_code=422,

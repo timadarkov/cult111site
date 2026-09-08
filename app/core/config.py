@@ -12,10 +12,11 @@ class AuthJWT(BaseModel):
     private_key_path: Path = CERTS_DIR / "private.pem"
     public_key_path: Path = CERTS_DIR / "public.pem"
     algorithm: str = "RS256"
+    access_token_expire_minutes: int = 15
 
 
 class Settings(BaseSettings):
-    Database_url: str
+    database_url: str
     host_url: list[str]
 
     auth_jwt: AuthJWT = AuthJWT()
