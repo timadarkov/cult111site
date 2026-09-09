@@ -5,5 +5,5 @@ from database import Base
 
 class Brands(Base):
     __tablename__ = "brands"
-    id_brand: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]

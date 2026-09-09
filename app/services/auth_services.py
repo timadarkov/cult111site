@@ -8,7 +8,7 @@ from app.storage import users as users_storage
 def login(db: Session, username: str, password: str) -> dict[str, str]:
     user = users_storage.get_user_by_username(db, username)
 
-    if user is None:
+    if not user:
         raise HTTPException(
             status_code=401,
             detail="Invalid username or password",
