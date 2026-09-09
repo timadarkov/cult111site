@@ -1,8 +1,7 @@
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import selectinload
 
-from app.models.db import Products
+from app.models.product import Products
 
 
 def get_products(db: Session, category_id: int | None = None, brand_id: int | None = None) -> list[Products]:

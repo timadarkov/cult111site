@@ -3,10 +3,6 @@ from database import SessionLocal
 from app.storage import category as category_storage
 
 
-
-
-
-
 def get_categories():
     db = SessionLocal()
     try:
