@@ -1,11 +1,13 @@
 from sqlalchemy.orm import Session
-from app.schemas.auth import UserCreate
+from app.schemas import user
 from app.auth.utils import hash_password
 from app.models.users import User
 from app.storage import users as users_storage
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
 
 
-def create_users(db: Session, user: UserCreate):
+def create_users(db: Session, user: user.UserCreate):
 
     hashed_password = hash_password(user.password)
     user = User(
@@ -14,7 +16,17 @@ def create_users(db: Session, user: UserCreate):
         nickname=user.nickname,
         password_hash=hashed_password,
     )
-    return users_storage.add_user(db, user)
+    try:
+        db_user = users_storage.add_user(db, user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="Username already exists",
+        )
 
 
 def get_users(

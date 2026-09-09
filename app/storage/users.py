@@ -5,15 +5,8 @@ from app.models.users import User
 
 
 def add_user(db: Session, user: User) -> User:
-    try:
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-        return user
-
-    except IntegrityError:
-        db.rollback()
-        raise
+    db.add(user)
+    return user
 
 
 def get_users(db: Session, username: str | None = None, email: str | None = None, nickname: str | None = None, is_active: bool | None = None, is_verified: bool | None = None,

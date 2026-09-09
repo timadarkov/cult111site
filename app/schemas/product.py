@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
 
-class imageSchemaOut(BaseModel):
+class ImageSchemaOut(BaseModel):
     id: int
     product_id: int
     image_url: str
@@ -16,6 +16,6 @@ class ProductSchemaOut(BaseModel):
     description: str
     category_id: int
     brand_id: int
-    images: list[imageSchemaOut] = []
+    images: list[ImageSchemaOut] = []
 
     model_config = ConfigDict(from_attributes=True)

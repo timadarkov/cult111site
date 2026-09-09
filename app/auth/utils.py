@@ -3,10 +3,13 @@ import bcrypt
 from app.core.config import settings
 from datetime import datetime, timedelta, timezone
 
+PUBLIC_KEY = settings.auth_jwt.public_key_path.read_text()
+PRIVATE_KEY = settings.auth_jwt.private_key_path.read_text()
+
 
 def encode_jwt(
         payload: dict,
-        private_key: str = settings.auth_jwt.private_key_path.read_text(),
+        private_key: str = PRIVATE_KEY,
         algorithm: str = settings.auth_jwt.algorithm,
 ):
     payload = payload.copy()
@@ -20,10 +23,10 @@ def encode_jwt(
 
 def decode_jwt(
         token: str | bytes,
-        public_key: str = settings.auth_jwt.public_key_path.read_text(),
+        public_key: str = PUBLIC_KEY,
         algorithm: str = settings.auth_jwt.algorithm,
 ):
-    decoded = jwt.decode(token, public_key, algorithms=algorithm)
+    decoded = jwt.decode(token, public_key, algorithms=[algorithm])
     return decoded
 
 

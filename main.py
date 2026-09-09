@@ -1,10 +1,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.exceptions import RequestValidationError
-from sqlalchemy.exc import IntegrityError
 
-from app.core.exceptions import validation_exception_handler, integrity_exception_handler
 from app.api.v1.router_info import router as info_router
 from app.api.v1.router_category import router as categories_router
 from app.api.v1.router_brand import router as brands_router
@@ -17,16 +14,6 @@ from database import Base, engine
 
 
 app = FastAPI()
-
-app.add_exception_handler(
-    RequestValidationError,
-    validation_exception_handler
-)
-
-app.add_exception_handler(
-    IntegrityError,
-    integrity_exception_handler
-)
 
 origins = settings.host_url
 
