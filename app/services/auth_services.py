@@ -88,4 +88,4 @@ def refresh(db: Session, refresh_token: str) -> dict[str, str]:
 
 
 def get_current_user(db: Session, current_user: int) -> User:
-    return users_storage.get_user_by_id(db, current_user)
+    return users_storage.get_user_by_id(db, current_user.id)
