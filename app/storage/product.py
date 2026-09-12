@@ -6,7 +6,7 @@ from app.models.product import Products
 
 def get_products(db: Session, category_id: int | None = None, brand_id: int | None = None) -> list[Products]:
 
-    query = db.query(Products).options(selectinload(Products.images))
+    query = db.query(Products).options(selectinload(Products.images)).filter(Products.is_visible == True)
 
     if category_id is not None:
 
@@ -21,4 +21,4 @@ def get_products(db: Session, category_id: int | None = None, brand_id: int | No
 
 def get_product_by_id(db: Session, id: int) -> Products:
 
-    return (db.query(Products).options(selectinload(Products.images)).filter(Products.id == id).first())
+    return (db.query(Products).options(selectinload(Products.images)).filter(Products.id == id).filter(Products.is_visible == True).first())
