@@ -4,7 +4,7 @@ from app.models.info import Info
 
 
 def get_info(db: Session) -> list[Info]:
-    return db.query(Info).first()
+    return db.query(Info).filter(Info.is_visible == True).all()
 
 
 def update_info(db: Session, info: InfoUpdate):

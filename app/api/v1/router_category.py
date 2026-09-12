@@ -31,16 +31,16 @@ def add_category(
     )
 
 
-@router.delete("/{category_id}", status_code=204)
-def delete_category(
-    category_id: int,
-    current_admin: User = Depends(get_current_admin),
-    db: Session = Depends(get_db),
-):
-    return category_services.delete_category(
-        db=db,
-        category_id=category_id,
-    )
+# @router.delete("/{category_id}", status_code=204)
+# def delete_category(
+#     category_id: int,
+#     current_admin: User = Depends(get_current_admin),
+#     db: Session = Depends(get_db),
+# ):
+#     return category_services.delete_category(
+#         db=db,
+#         category_id=category_id,
+#     )
 
 
 @router.patch("/{category_id}")

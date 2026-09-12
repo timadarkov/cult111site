@@ -4,7 +4,7 @@ from app.models.category import Category
 
 
 def get_categories(db: Session) -> list[Category]:
-    return db.query(Category).all()
+    return db.query(Category).filter(Category.is_visible == True).all()
 
 
 def create_category(db: Session, data: CategoryUpdate):

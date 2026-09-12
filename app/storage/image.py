@@ -4,4 +4,4 @@ from app.models.product import Images
 
 
 def get_images(db: Session) -> list[Images]:
-    return db.query(Images).all()
+    return db.query(Images).filter(Images.is_visible == True).all()

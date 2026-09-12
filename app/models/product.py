@@ -1,5 +1,5 @@
 from decimal import Decimal
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Boolean, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -36,3 +36,4 @@ class Products(Base):
         cascade="all, delete-orphan"
 
     )
+    is_visible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=true())
