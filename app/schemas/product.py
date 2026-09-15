@@ -1,12 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 
-
-class ImageSchemaOut(BaseModel):
-    id: int
-    product_id: int
-    image_url: str
-
-    model_config = ConfigDict(from_attributes=True)
+from app.schemas.image import ImageSchemaOut
 
 
 class ProductSchemaOut(BaseModel):

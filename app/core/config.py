@@ -19,6 +19,12 @@ class AuthJWT(BaseModel):
 class Settings(BaseSettings):
     database_url: str
     host_url: list[str]
+    r2_endpoint: str
+    r2_access_key_id: str
+    r2_secret_access_key: str
+    r2_bucket: str
+    r2_public_url: str
+    image_max_size: int
 
     auth_jwt: AuthJWT = AuthJWT()
 
