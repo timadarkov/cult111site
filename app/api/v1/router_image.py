@@ -15,7 +15,9 @@ router = APIRouter(
 
 @router.get("", response_model=list[product.ImageSchemaOut])
 def get_images(db: Session = Depends(get_db), admin=Depends(get_current_admin)):
-    return image_services.get_images(db)
+    return image_services.get_images(
+        db=db,
+    )
 
 
 @router.post("/presign")
