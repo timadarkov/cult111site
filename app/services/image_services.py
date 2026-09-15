@@ -69,12 +69,8 @@ def register_image(
     return image.create_image(db, data.product_id, data.key)
 
 
-def get_images():
-    db = SessionLocal()
-    try:
-        return image.get_images(db)
-    finally:
-        db.close()
+def get_images(db: Session):
+    return image.get_images(db)
 
 
 def delete_image(db: Session, image_id: int):
