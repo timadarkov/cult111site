@@ -7,3 +7,10 @@ class InfoResponse(BaseModel):
     info: str
     owners: str
     contacts: str
+
+
+class InfoUpdate(BaseModel):
+    slug: str | None = None
+    info: str | None = None
+    owners: str | None = None
+    contacts: str | None = None

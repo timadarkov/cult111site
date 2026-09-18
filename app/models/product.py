@@ -1,21 +1,8 @@
 from decimal import Decimal
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Boolean, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from app.models.image import Images
 from database import Base
-
-
-class Images(Base):
-    __tablename__ = "images"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    product_id: Mapped[int] = mapped_column(
-        ForeignKey("products.id", ondelete="CASCADE")
-    )
-    image_url: Mapped[str]
-
-    product: Mapped["Products"] = relationship(
-        back_populates="images"
-    )
 
 
 class Products(Base):
@@ -31,8 +18,10 @@ class Products(Base):
     brand_id: Mapped[int] = mapped_column(
         ForeignKey("brands.id_brand", ondelete="CASCADE")
     )
-    images: Mapped[list["Images"]] = relationship(
+    images = relationship(
+        "Images",
         back_populates="product",
         cascade="all, delete-orphan"
 
     )
+    is_visible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=true())
