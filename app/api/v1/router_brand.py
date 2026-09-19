@@ -16,16 +16,19 @@ def get_brands(db: Session = Depends(get_db)):
     return brand_services.get_brands(db=db)
 
 
-@router.get("/admin", response_model=list[brand.BrandAdminResponse],)
-def get_brands_admin(db: Session = Depends(get_db), current_admin: User = Depends(get_current_admin)):
+@router.get(
+    "/admin",
+    response_model=list[brand.BrandAdminResponse],
+    dependencies=[Depends(get_current_admin)],
+)
+def get_brands_admin(db: Session = Depends(get_db),):
     return brand_services.get_brands_admin(db=db)
 
 
-@router.patch("/{brand_id}", status_code=200)
+@router.patch("/{brand_id}", status_code=200, dependencies=[Depends(get_current_admin)])
 def update_brand_visability(
     brand_id: int,
     data: brand.BrandVisibilityUpdate,
-    current_admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
     return brand_services.delete_brand(

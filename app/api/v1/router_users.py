@@ -12,12 +12,12 @@ router = APIRouter(
 )
 
 
-@router.post("", response_model=user.UserResponse, status_code=201)
-def create_users(user: user.UserCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_admin)):
+@router.post("", response_model=user.UserResponse, status_code=201, dependencies=[Depends(get_current_admin)])
+def create_users(user: user.UserCreate, db: Session = Depends(get_db),):
     return users_services.create_users(db, user)
 
 
-@router.get("", response_model=list[user.UserResponse])
+@router.get("", response_model=list[user.UserResponse], dependencies=[Depends(get_current_admin)])
 def get_users(
     username: str | None = None,
     email: str | None = None,
@@ -25,7 +25,6 @@ def get_users(
     is_active: bool | None = None,
     is_verified: bool | None = None,
     db: Session = Depends(get_db),
-    current_user: int = Depends(get_current_admin)
 ):
     return users_services.get_users(
         db=db,
