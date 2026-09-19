@@ -8,3 +8,8 @@ class CategoryResponse(BaseModel):
 
 class CategoryUpdate(BaseModel):
     name: str
+
+
+class CategoryCreate(BaseModel):
+    name: str
+    is_visible: bool = True

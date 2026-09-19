@@ -21,8 +21,8 @@ def get_brands_admin(db: Session = Depends(get_db), current_admin: User = Depend
     return brand_services.get_brands_admin(db=db)
 
 
-@router.post("/{brand_id}", status_code=204)
-def delete_category(
+@router.patch("/{brand_id}", status_code=200)
+def update_brand_visability(
     brand_id: int,
     data: brand.BrandVisibilityUpdate,
     current_admin: User = Depends(get_current_admin),

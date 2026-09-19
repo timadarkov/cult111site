@@ -6,12 +6,9 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 
-def get_categories():
-    db = SessionLocal()
-    try:
-        return category_storage.get_categories(db)
-    finally:
-        db.close()
+def get_categories(db: Session):
+
+    return category_storage.get_categories(db)
 
 
 def add_category(data, db):

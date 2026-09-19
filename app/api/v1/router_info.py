@@ -13,8 +13,8 @@ router = APIRouter(
 
 
 @router.get("", response_model=info.InfoResponse)
-def get_info():
-    return info_services.get_info()
+def get_info(db: Session = Depends(get_db)):
+    return info_services.get_info(db=db)
 
 
 @router.patch("/update", response_model=info.InfoResponse)
