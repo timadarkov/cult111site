@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-
+from sqlalchemy import Boolean, true
 from database import Base
 
 
@@ -9,3 +9,4 @@ class Info(Base):
     info: Mapped[str]
     owners: Mapped[str]
     contacts: Mapped[str]
+    is_visible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=true())

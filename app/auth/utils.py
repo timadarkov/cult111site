@@ -12,10 +12,6 @@ def encode_jwt(
         private_key: str = PRIVATE_KEY,
         algorithm: str = settings.auth_jwt.algorithm,
 ):
-    payload = payload.copy()
-    payload["exp"] = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.auth_jwt.access_token_expire_minutes
-    )
 
     encoded = jwt.encode(payload, private_key, algorithm=algorithm)
     return encoded
@@ -23,11 +19,21 @@ def encode_jwt(
 
 def decode_jwt(
         token: str | bytes,
+        expected_type: str,
         public_key: str = PUBLIC_KEY,
         algorithm: str = settings.auth_jwt.algorithm,
 ):
-    decoded = jwt.decode(token, public_key, algorithms=[algorithm])
-    return decoded
+    payload = jwt.decode(
+        token,
+        public_key,
+        algorithms=[algorithm],
+        options={"require": ["sub", "exp", "type"]},
+    )
+
+    if payload["type"] != expected_type:
+        raise jwt.InvalidTokenError("Invalid token type")
+
+    return payload
 
 
 def hash_password(password: str) -> str:
@@ -44,4 +50,15 @@ def verify_password(
     return bcrypt.checkpw(
         password=password.encode(),
         hashed_password=hashed_password.encode(),
+    )
+
+
+def create_token(user_id: int | str, token_type: str, token_expire_minutes: int) -> str:
+    return encode_jwt(
+        payload={
+            "sub": str(user_id),
+            "type": token_type,
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=token_expire_minutes),
+            "iat": datetime.now(timezone.utc),
+        }
     )
