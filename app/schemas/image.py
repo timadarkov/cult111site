@@ -18,6 +18,6 @@ class ImageCreate(BaseModel):
 class ImageSchemaOut(BaseModel):
     id: int
     product_id: int
-    image_url: str
+    key: str
 
     model_config = ConfigDict(from_attributes=True)
