@@ -19,10 +19,9 @@ def get_categories(db: Session = Depends(get_db)):
     return category_services.get_categories(db=db)
 
 
-@router.post("/add", response_model=category.CategoryResponse, status_code=201)
+@router.post("", response_model=category.CategoryResponse, dependencies=[Depends(get_current_admin)], status_code=201)
 def add_category(
     data: category.CategoryCreate,
-    current_admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     return category_services.add_category(
@@ -31,11 +30,10 @@ def add_category(
     )
 
 
-@router.patch("/{category_id}")
+@router.patch("/{category_id}", dependencies=[Depends(get_current_admin)])
 def update_category(
     category_id: int,
     data: category.CategoryUpdate,
-    current_admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ):
     return category_services.update_category(
