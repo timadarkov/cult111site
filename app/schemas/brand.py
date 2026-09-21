@@ -18,4 +18,9 @@ class BrandVisibilityUpdate(BaseModel):
 
 class BrandCreate(BaseModel):
     name: str
-    is_visible: bool
+    is_visible: bool = True
+
+
+class BrandEdit(BaseModel):
+    name: str | None = None
+    is_visible: bool | None = None
