@@ -3,24 +3,18 @@ services:
     image: postgres:17
     container_name: cult111-postgres
     restart: unless-stopped
+
     environment:
-      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set in .env}
-    entrypoint:
-      - /bin/bash
-      - -ec
-      - |
-        connection="$${DATABASE_URL#*://}"
-        credentials="$${connection%%@*}"
-        location="$${connection#*@}"
-        database="$${location#*/}"
-        export POSTGRES_USER="$${credentials%%:*}"
-        export POSTGRES_PASSWORD="$${credentials#*:}"
-        export POSTGRES_DB="$${database%%\?*}"
-        exec /usr/local/bin/docker-entrypoint.sh postgres
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${DB_PORT}:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     healthcheck:
       test:
         - CMD-SHELL
