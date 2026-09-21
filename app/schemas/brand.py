@@ -14,3 +14,8 @@ class BrandAdminResponse(BaseModel):
 
 class BrandVisibilityUpdate(BaseModel):
     is_visible: bool
+
+
+class BrandCreate(BaseModel):
+    name: str
+    is_visible: bool
