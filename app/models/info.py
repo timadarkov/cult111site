@@ -9,4 +9,5 @@ class Info(Base):
     info: Mapped[str]
     owners: Mapped[str]
     contacts: Mapped[str]
-    is_visible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=true())
+    is_visible: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=true())
