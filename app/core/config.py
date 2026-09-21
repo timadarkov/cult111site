@@ -17,7 +17,21 @@ class AuthJWT(BaseModel):
 
 
 class Settings(BaseSettings):
-    database_url: str
+
+    db_user: str
+    db_password: str
+    db_name: str
+    db_host: str
+    db_port: int
+
+    @property
+    def database_url(self) -> str:
+        return (
+            f"postgresql+psycopg2://"
+            f"{self.db_user}:{self.db_password}"
+            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
+
     host_url: list[str]
     r2_endpoint: str
     r2_access_key_id: str
