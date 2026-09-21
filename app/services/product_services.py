@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
 from app.storage import product as product_storage
-
+from app.schemas import product
 from sqlalchemy.orm import Session
 
 
@@ -22,3 +22,7 @@ def get_products(
         category_id=category_id,
         brand_id=brand_id,
     )
+
+
+def add_product(db: Session, data: product.ProductCreate):
+    return product_storage.create_product(db, data)
