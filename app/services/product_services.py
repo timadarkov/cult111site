@@ -24,5 +24,31 @@ def get_products(
     )
 
 
+def add_product_image(db: Session, data: product.ProductImageAdd, product_id: int):
+    return product_storage.add_product_image(db, data, product_id)
+
+
 def add_product(db: Session, data: product.ProductCreate):
     return product_storage.create_product(db, data)
+
+
+def get_product_by_id_admin(db: Session, product_id: int):
+    return product_storage.get_product_by_id_admin(db, product_id)
+
+
+def get_product_admin(db: Session):
+    return product_storage.get_product_admin(db)
+
+
+def update_product_visibility(db: Session, product_id: int, data: product.ProductVisibilityUpdate):
+    product = product_storage.update_product_visibility(db, product_id, data)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
+
+
+def edit_product(db: Session, product_id: int, data: product.ProductEdit):
+    product = product_storage.edit_product(db, product_id, data)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
