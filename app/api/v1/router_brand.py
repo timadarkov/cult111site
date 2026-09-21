@@ -25,7 +25,7 @@ def get_brands_admin(db: Session = Depends(get_db),):
     return brand_services.get_brands_admin(db=db)
 
 
-@router.post("", response_model=brand.BrandResponse, dependencies=[Depends(get_current_admin)], status_code=201)
+@router.post("/admin", response_model=brand.BrandResponse, dependencies=[Depends(get_current_admin)], status_code=201)
 def add_brand(
     data: brand.BrandCreate,
     db: Session = Depends(get_db)
@@ -36,7 +36,7 @@ def add_brand(
     )
 
 
-@router.patch("/{brand_id}", status_code=200, dependencies=[Depends(get_current_admin)])
+@router.patch("/admin/{brand_id}", status_code=200, dependencies=[Depends(get_current_admin)])
 def edit_brand(
     brand_id: int,
     data: brand.BrandEdit,
@@ -49,7 +49,7 @@ def edit_brand(
     )
 
 
-@router.patch("/delete/{brand_id}", status_code=200, dependencies=[Depends(get_current_admin)])
+@router.patch("/admin/visibility/{brand_id}", status_code=200, dependencies=[Depends(get_current_admin)])
 def update_brand_visibility(
     brand_id: int,
     data: brand.BrandVisibilityUpdate,

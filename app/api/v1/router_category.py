@@ -23,7 +23,7 @@ def get_categories_admin(db: Session = Depends(get_db),):
     return category_services.get_categories_admin(db=db)
 
 
-@router.post("", response_model=category.CategoryResponse, dependencies=[Depends(get_current_admin)], status_code=201)
+@router.post("/admin", response_model=category.CategoryResponse, dependencies=[Depends(get_current_admin)], status_code=201)
 def add_category(
     data: category.CategoryCreate,
     db: Session = Depends(get_db)
@@ -34,7 +34,7 @@ def add_category(
     )
 
 
-@router.patch("/{category_id}", dependencies=[Depends(get_current_admin)])
+@router.patch("/admin/{category_id}", dependencies=[Depends(get_current_admin)])
 def edit_category(
     category_id: int,
     data: category.CategoryEdit,
@@ -47,7 +47,7 @@ def edit_category(
     )
 
 
-@router.patch("/delete/{category_id}", status_code=200, dependencies=[Depends(get_current_admin)])
+@router.patch("/admin/visibility/{category_id}", status_code=200, dependencies=[Depends(get_current_admin)])
 def update_category_visibility(
     category_id: int,
     data: category.CategoryVisibilityUpdate,

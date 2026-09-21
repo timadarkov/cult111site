@@ -1,5 +1,6 @@
 import boto3
 from app.core.config import settings
+from botocore.exceptions import ClientError
 
 s3 = boto3.client(
     "s3",
@@ -34,3 +35,17 @@ def delete_object(key: str):
         Bucket=settings.r2_bucket,
         Key=key,
     )
+
+
+def object_exists(key: str) -> bool:
+    try:
+        s3.head_object(
+            Bucket=settings.r2_bucket,
+            Key=key,
+        )
+        return True
+
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "404":
+            return False
+        raise
