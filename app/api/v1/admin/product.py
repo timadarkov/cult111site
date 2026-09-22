@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.dependency import get_db
-from app.services import product_services
+from app.services import image_services, product_services
 from app.schemas import product
 
 
@@ -18,7 +18,7 @@ def add_product_image(
     product_id: int,
     db: Session = Depends(get_db)
 ):
-    return product_services.add_product_image(
+    return image_services.register_image(
         db=db,
         data=data,
         product_id=product_id,
@@ -46,7 +46,7 @@ def get_product_by_id_admin(product_id: int, db: Session = Depends(get_db)):
     return product_services.get_product_by_id_admin(db=db, product_id=product_id)
 
 
-@router.patch("/visibility/{product_id}", status_code=200)
+@router.patch("/visibility/{product_id}", response_model=product.ProductAdminResponse, status_code=200)
 def update_product_visibility(
     product_id: int,
     data: product.ProductVisibilityUpdate,
@@ -59,7 +59,7 @@ def update_product_visibility(
     )
 
 
-@router.patch("/{product_id}")
+@router.patch("/{product_id}", response_model=product.ProductAdminResponse)
 def edit_product(
     product_id: int,
     data: product.ProductEdit,
@@ -70,3 +70,12 @@ def edit_product(
         product_id=product_id,
         data=data,
     )
+
+
+@router.delete("/{image_id}", response_model=product.ProductImageDelete, status_code=200)
+def delete_image(
+    image_id: int,
+    db: Session = Depends(get_db),
+):
+    image_services.delete_image(db, image_id)
+    return {"detail": "Image deleted"}

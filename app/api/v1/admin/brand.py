@@ -30,7 +30,7 @@ def add_brand(
     )
 
 
-@router.patch("/{brand_id}", status_code=200)
+@router.patch("/{brand_id}", response_model=list[brand.BrandAdminResponse], status_code=200)
 def edit_brand(
     brand_id: int,
     data: brand.BrandEdit,
@@ -43,7 +43,7 @@ def edit_brand(
     )
 
 
-@router.patch("/visibility/{brand_id}", status_code=200)
+@router.patch("/{brand_id}/visibility", response_model=list[brand.BrandAdminResponse], status_code=200)
 def update_brand_visibility(
     brand_id: int,
     data: brand.BrandVisibilityUpdate,
