@@ -6,11 +6,10 @@ from app.schemas import category
 from app.dependency import get_current_admin, get_db
 from sqlalchemy.orm import Session
 from fastapi import Depends
-from app.models.users import User
 
 router = APIRouter(
-    prefix="/catefories",
-    tags=["Catefories"],
+    prefix="/categories",
+    tags=["Categories"],
 )
 
 
@@ -19,24 +18,42 @@ def get_categories(db: Session = Depends(get_db)):
     return category_services.get_categories(db=db)
 
 
-@router.post("", response_model=category.CategoryResponse, dependencies=[Depends(get_current_admin)], status_code=201)
+@router.get("/admin", response_model=list[category.CategoryAdminResponse], dependencies=[Depends(get_current_admin)])
+def get_categories_admin(db: Session = Depends(get_db),):
+    return category_services.get_categories_admin(db=db)
+
+
+@router.post("/admin", response_model=category.CategoryResponse, dependencies=[Depends(get_current_admin)], status_code=201)
 def add_category(
     data: category.CategoryCreate,
     db: Session = Depends(get_db)
 ):
     return category_services.add_category(
-        data=data,
         db=db,
+        data=data,
     )
 
 
-@router.patch("/{category_id}", dependencies=[Depends(get_current_admin)])
-def update_category(
+@router.patch("/admin/{category_id}", dependencies=[Depends(get_current_admin)])
+def edit_category(
     category_id: int,
-    data: category.CategoryUpdate,
+    data: category.CategoryEdit,
     db: Session = Depends(get_db),
 ):
-    return category_services.update_category(
+    return category_services.edit_category(
+        db=db,
+        category_id=category_id,
+        data=data,
+    )
+
+
+@router.patch("/admin/visibility/{category_id}", status_code=200, dependencies=[Depends(get_current_admin)])
+def update_category_visibility(
+    category_id: int,
+    data: category.CategoryVisibilityUpdate,
+    db: Session = Depends(get_db),
+):
+    return category_services.update_category_visibility(
         db=db,
         category_id=category_id,
         data=data,

@@ -12,19 +12,30 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=info.InfoResponse)
+@router.get("", response_model=list[info.InfoResponse])
 def get_info(db: Session = Depends(get_db)):
     return info_services.get_info(db=db)
 
 
-@router.patch("", response_model=info.InfoResponse)
+@router.post("/admin", response_model=info.InfoAdminResponse, dependencies=[Depends(get_current_admin)], status_code=201)
+def add_info(
+    data: info.InfoAdd,
+    db: Session = Depends(get_db)
+):
+    return info_services.add_info(
+        data=data,
+        db=db,
+    )
+
+
+@router.patch("/admin/{slug}", response_model=info.InfoUpdate, dependencies=[Depends(get_current_admin)])
 def update_info(
-    info: info.InfoUpdate,
-    current_admin: User = Depends(get_current_admin),
+    slug: str,
+    data: info.InfoUpdate,
     db: Session = Depends(get_db)
 ):
     return info_services.update_info(
-        info,
-        current_admin,
+        slug=slug,
+        data=data,
         db=db,
     )
