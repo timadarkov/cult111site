@@ -41,7 +41,7 @@ def edit_category(
     )
 
 
-@router.patch("/visibility/{category_id}", response_model=list[category.CategoryAdminResponse], status_code=200)
+@router.patch("/{category_id}/visibility", response_model=category.CategoryAdminResponse, status_code=200)
 def update_category_visibility(
     category_id: int,
     data: category.CategoryVisibilityUpdate,
