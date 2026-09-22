@@ -25,13 +25,37 @@ def get_brands_admin(db: Session = Depends(get_db),):
     return brand_services.get_brands_admin(db=db)
 
 
-@router.patch("/{brand_id}", status_code=200, dependencies=[Depends(get_current_admin)])
-def update_brand_visability(
+@router.post("/admin", response_model=brand.BrandResponse, dependencies=[Depends(get_current_admin)], status_code=201)
+def add_brand(
+    data: brand.BrandCreate,
+    db: Session = Depends(get_db)
+):
+    return brand_services.add_brand(
+        db=db,
+        data=data,
+    )
+
+
+@router.patch("/admin/{brand_id}", status_code=200, dependencies=[Depends(get_current_admin)])
+def edit_brand(
+    brand_id: int,
+    data: brand.BrandEdit,
+    db: Session = Depends(get_db),
+):
+    return brand_services.edit_brand(
+        db=db,
+        brand_id=brand_id,
+        data=data,
+    )
+
+
+@router.patch("/admin/visibility/{brand_id}", status_code=200, dependencies=[Depends(get_current_admin)])
+def update_brand_visibility(
     brand_id: int,
     data: brand.BrandVisibilityUpdate,
     db: Session = Depends(get_db),
 ):
-    return brand_services.delete_brand(
+    return brand_services.update_brand_visibility(
         db=db,
         brand_id=brand_id,
         data=data,
