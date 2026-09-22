@@ -1,23 +1,23 @@
-from app.services import users_services
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+
 from app.dependency import get_db
+from app.services import users_services
 from app.schemas import user
-from app.dependency import get_current_admin, get_current_user
 
 
 router = APIRouter(
     prefix="/users",
-    tags=["Users"],
+    tags=["Admin: Users"],
 )
 
 
-@router.post("", response_model=user.UserResponse, status_code=201, dependencies=[Depends(get_current_admin)])
+@router.post("", response_model=user.UserResponse, status_code=201)
 def create_users(user: user.UserCreate, db: Session = Depends(get_db),):
     return users_services.create_users(db, user)
 
 
-@router.get("", response_model=list[user.UserResponse], dependencies=[Depends(get_current_admin)])
+@router.get("", response_model=list[user.UserResponseAdmin])
 def get_users(
     username: str | None = None,
     email: str | None = None,
