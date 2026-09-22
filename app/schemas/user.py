@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
-from pydantic import Field
+from pydantic import BaseModel, EmailStr, ConfigDict, Field
+from datetime import datetime
 
 
 class UserCreate(BaseModel):
@@ -18,3 +18,16 @@ class UserResponse(BaseModel):
     username: str
     email: EmailStr | None = None
     nickname: str
+
+
+class UserResponseAdmin(UserResponse):
+    id: int
+    username: str
+    password_hash: str
+    email: EmailStr | None = None
+    nickname: str
+    is_active: bool
+    is_verified: bool
+    is_admin: bool
+    created_at: datetime
+    updated_at: datetime
