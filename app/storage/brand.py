@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.schemas.brand import BrandEdit, BrandVisibilityUpdate, BrandAdminResponse, BrandCreate
+from app.schemas.brand import BrandEdit, BrandVisibilityUpdate, BrandCreate
 from app.models.brand import Brands
 
 

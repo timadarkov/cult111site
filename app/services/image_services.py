@@ -34,6 +34,8 @@ def create_presigned_upload(data: image_schema.ImagePresignRequest):
 def register_image(
         db: Session,
         data: image_schema.ImageCreate,
+        product_id: int,
+        image_id: int,
 ):
     if not data.key.startswith("products/"):
         raise HTTPException(
@@ -72,8 +74,8 @@ def get_images(db: Session):
     return image.get_images(db)
 
 
-def delete_image(db: Session, image_id: int):
-    image_obj = image.get_image(db, image_id)
+def delete_image(db: Session, image_id: int, product_id: int):
+    image_obj = image.get_image(db, image_id, product_id)
 
     if not image_obj:
         raise HTTPException(

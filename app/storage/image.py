@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.image import Images
@@ -28,6 +29,15 @@ def get_image(db: Session, image_id: int):
     return db.get(Images, image_id)
 
 
-def delete_image(db: Session, image: Images):
-    db.delete(image)
-    db.commit()
+def delete_image(db: Session, image: Images, product_id: int, image_id: int):
+
+    image_obj = db.get(Images, image_id)
+    if not image_obj:
+        raise HTTPException(
+            status_code=404,
+            detail="Image not found",
+        )
+
+    if image_obj:
+        db.delete(image_obj)
+        db.commit()
