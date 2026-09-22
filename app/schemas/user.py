@@ -23,7 +23,6 @@ class UserResponse(BaseModel):
 class UserResponseAdmin(UserResponse):
     id: int
     username: str
-    password_hash: str
     email: EmailStr | None = None
     nickname: str
     is_active: bool

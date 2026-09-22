@@ -14,7 +14,7 @@ def get_brands_for_admin(
 
     query = db.query(Brands)
 
-    if is_visible is not None:
+    if is_visible:
         query = query.filter(Brands.is_visible.is_(is_visible))
 
     return query.all()
@@ -38,7 +38,7 @@ def update_brand_visibility(
 ) -> Brands | None:
     brand = db.get(Brands, brand_id)
 
-    if brand is None:
+    if not brand:
         return None
 
     brand.is_visible = data.is_visible
@@ -56,7 +56,7 @@ def edit_brand(
 ) -> Brands | None:
     brand = db.get(Brands, brand_id)
 
-    if brand is None:
+    if not brand:
         return None
 
     changes = data.model_dump(exclude_unset=True)

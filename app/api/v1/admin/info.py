@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.post("/admin", response_model=info.InfoAdminResponse, status_code=201)
+@router.post("", response_model=info.InfoAdminResponse, status_code=201)
 def add_info(
     data: info.InfoAdd,
     db: Session = Depends(get_db)
@@ -23,7 +23,7 @@ def add_info(
     )
 
 
-@router.patch("/admin/{slug}", response_model=info.InfoUpdate)
+@router.patch("/{slug}", response_model=info.InfoUpdate)
 def update_info(
     slug: str,
     data: info.InfoUpdate,

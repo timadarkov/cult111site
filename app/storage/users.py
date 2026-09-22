@@ -13,15 +13,15 @@ def get_users(db: Session, username: str | None = None, email: str | None = None
               ) -> list[User]:
     query = db.query(User)
 
-    if username is not None:
+    if username:
         query = query.filter(User.username == username)
-    if email is not None:
+    if email:
         query = query.filter(User.email == email)
-    if nickname is not None:
+    if nickname:
         query = query.filter(User.nickname == nickname)
-    if is_active is not None:
+    if is_active:
         query = query.filter(User.is_active == is_active)
-    if is_verified is not None:
+    if is_verified:
         query = query.filter(User.is_verified == is_verified)
     return query.all()
 
