@@ -23,4 +23,4 @@ def get_images(db: Session = Depends(get_db)):
 def presign_image(
     data: image.ImagePresignRequest,
 ):
-    return image_services.create_presigned_upload(data)
+    return image_services.create_presigned_upload(data=data)
