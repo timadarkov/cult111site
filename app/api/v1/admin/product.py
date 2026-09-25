@@ -59,7 +59,7 @@ def edit_product(
     )
 
 
-@router.delete("{product_id}/images/{image_id}", response_model=product.ProductImageDelete, status_code=204)
+@router.delete("{product_id}/images/{image_id}", status_code=204)
 def delete_image(
     product_id: int,
     image_id: int,

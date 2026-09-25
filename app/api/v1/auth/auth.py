@@ -4,9 +4,8 @@ from sqlalchemy.orm import Session
 from app.dependency import get_db, get_current_user
 from app.schemas import auth, user
 from app.services import auth_services
-from app.models.users import User
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(prefix="", tags=["Auth"])
 
 
 @router.post("/login", response_model=auth.UserLoginResponse)

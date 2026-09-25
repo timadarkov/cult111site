@@ -29,15 +29,7 @@ def get_image(db: Session, image_id: int):
     return db.get(Images, image_id)
 
 
-def delete_image(db: Session, image: Images, product_id: int, image_id: int):
-
-    image_obj = db.get(Images, image_id)
-    if not image_obj:
-        raise HTTPException(
-            status_code=404,
-            detail="Image not found",
-        )
-
-    if image_obj:
-        db.delete(image_obj)
-        db.commit()
+def delete_image(db: Session, image_obj: Images):
+    db.delete(image_obj)
+    db.commit()
+    return image_obj
