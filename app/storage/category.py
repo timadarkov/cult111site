@@ -42,7 +42,7 @@ def get_category_for_admin(
 
     query = db.query(Category)
 
-    if is_visible:
+    if is_visible is not None:
         query = query.filter(Category.is_visible.is_(is_visible))
 
     return query.all()

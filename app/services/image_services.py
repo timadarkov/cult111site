@@ -59,14 +59,9 @@ def register_image(
             status_code=422,
             detail="Image is too big",
         )
-    if not data.key.startswith("products/"):
-        raise HTTPException(
-            status_code=422,
-            detail="Invalid key",
-        )
 
-    get_product_by_id(db, data.product_id)
-    return image.create_image(db, data.product_id, data.key)
+    get_product_by_id(db, product_id)
+    return image.create_image(db, product_id, data.key)
 
 
 def get_images(db: Session):

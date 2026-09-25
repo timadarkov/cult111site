@@ -55,9 +55,3 @@ class ProductImageAdd(BaseModel):
     key: str
     position: int = 0
     is_main: bool = False
-
-
-class ProductImageDelete(BaseModel):
-    image_id: int
-    key: str
-    product_id: int

@@ -28,7 +28,7 @@ def add_category(
     )
 
 
-@router.patch("/{category_id}", response_model=list[category.CategoryAdminResponse], status_code=200)
+@router.patch("/{category_id}", response_model=category.CategoryAdminResponse, status_code=200)
 def edit_category(
     category_id: int,
     data: category.CategoryEdit,

@@ -14,7 +14,7 @@ def get_brands_for_admin(
 
     query = db.query(Brands)
 
-    if is_visible:
+    if is_visible is not None:
         query = query.filter(Brands.is_visible.is_(is_visible))
 
     return query.all()
