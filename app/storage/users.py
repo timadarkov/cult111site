@@ -19,9 +19,9 @@ def get_users(db: Session, username: str | None = None, email: str | None = None
         query = query.filter(User.email == email)
     if nickname:
         query = query.filter(User.nickname == nickname)
-    if is_active:
+    if is_active is not None:
         query = query.filter(User.is_active == is_active)
-    if is_verified:
+    if is_verified is not None:
         query = query.filter(User.is_verified == is_verified)
     return query.all()
 

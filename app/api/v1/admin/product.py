@@ -59,14 +59,13 @@ def edit_product(
     )
 
 
-@router.delete("{product_id}/images/{image_id}", status_code=204)
+@router.delete("/products/{product_id}/images/{image_id}", status_code=204)
 def delete_image(
     product_id: int,
     image_id: int,
     db: Session = Depends(get_db),
 ):
     image_services.delete_image(db, image_id, product_id)
-    return {"detail": "Image deleted"}
 
 
 @router.post("/{product_id}/images", response_model=product.ProductImageAdd, status_code=201)

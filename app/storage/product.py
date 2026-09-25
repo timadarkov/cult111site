@@ -89,34 +89,3 @@ def edit_product(db: Session, product_id: int, data: product.ProductEdit) -> Pro
     db.refresh(product)
 
     return product
-
-
-def add_product_image(
-    db: Session,
-    data: product.ProductImageAdd,
-    product_id: int,
-):
-    product = db.get(Products, product_id)
-
-    if not product:
-        raise HTTPException(
-            status_code=404,
-            detail="Product not found"
-        )
-
-    if not r2.object_exists(data.key):
-        raise HTTPException(
-            status_code=404,
-            detail="Image does not exist in R2"
-        )
-
-    image = Images(
-        product_id=product_id,
-        key=data.key,
-    )
-
-    db.add(image)
-    db.commit()
-    db.refresh(image)
-
-    return image

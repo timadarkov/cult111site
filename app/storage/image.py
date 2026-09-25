@@ -25,7 +25,17 @@ def create_image(
     return image
 
 
-def get_image(db: Session, image_id: int):
+def get_image(db: Session, image_id: int, product_id: int) -> Images:
+    image = db.query(Images).filter(
+        Images.id == image_id,
+        product_id == product_id
+    ).first()
+
+    if not image:
+        raise HTTPException(
+            status_code=404,
+            detail="Image not found",
+        )
     return db.get(Images, image_id)
 
 
