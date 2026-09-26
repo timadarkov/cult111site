@@ -11,7 +11,6 @@ class ImagePresignResponse(BaseModel):
 
 
 class ImageCreate(BaseModel):
-    product_id: int
     key: str
 
 

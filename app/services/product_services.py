@@ -24,10 +24,6 @@ def get_products(
     )
 
 
-def add_product_image(db: Session, data: product.ProductImageAdd, product_id: int):
-    return product_storage.add_product_image(db, data, product_id)
-
-
 def add_product(db: Session, data: product.ProductCreate):
     return product_storage.create_product(db, data)
 

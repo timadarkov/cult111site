@@ -24,7 +24,7 @@ def update_category_visibility(
 ) -> Category | None:
     category = db.get(Category, category_id)
 
-    if category is None:
+    if not category:
         return None
 
     category.is_visible = data.is_visible
@@ -51,7 +51,7 @@ def get_category_for_admin(
 def edit_category(db: Session, category_id: int, data: category.CategoryEdit) -> Category | None:
     category = db.get(Category, category_id)
 
-    if category is None:
+    if not category:
         return None
 
     changes = data.model_dump(exclude_unset=True)

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.schemas.brand import BrandEdit, BrandVisibilityUpdate, BrandAdminResponse, BrandCreate
+from app.schemas.brand import BrandEdit, BrandVisibilityUpdate, BrandCreate
 from app.models.brand import Brands
 
 
@@ -38,7 +38,7 @@ def update_brand_visibility(
 ) -> Brands | None:
     brand = db.get(Brands, brand_id)
 
-    if brand is None:
+    if not brand:
         return None
 
     brand.is_visible = data.is_visible
@@ -56,7 +56,7 @@ def edit_brand(
 ) -> Brands | None:
     brand = db.get(Brands, brand_id)
 
-    if brand is None:
+    if not brand:
         return None
 
     changes = data.model_dump(exclude_unset=True)

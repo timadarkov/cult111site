@@ -7,7 +7,6 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.auth.utils import decode_jwt
 from app.models.users import User
-from app.storage import users as users_storage
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -25,7 +24,7 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
     db: Session = Depends(get_db),
 ) -> User:
-    if credentials is None:
+    if not credentials:
         raise HTTPException(
             status_code=401,
             detail="Authentication required",
@@ -47,7 +46,7 @@ def get_current_user(
 
     user = db.get(User, user_id)
 
-    if user is None:
+    if not user:
         raise HTTPException(
             status_code=401,
             detail="User not found",

@@ -13,11 +13,11 @@ def get_products(db: Session, category_id: int | None = None, brand_id: int | No
     query = db.query(Products).options(selectinload(
         Products.images)).filter(Products.is_visible == True)
 
-    if category_id is not None:
+    if category_id:
 
         query = query.filter(Products.category_id == category_id)
 
-    if brand_id is not None:
+    if brand_id:
 
         query = query.filter(Products.brand_id == brand_id)
 
@@ -63,7 +63,7 @@ def update_product_visibility(
 ) -> Products | None:
     product = db.get(Products, product_id)
 
-    if product is None:
+    if not product:
         return None
 
     product.is_visible = data.is_visible
@@ -77,7 +77,7 @@ def update_product_visibility(
 def edit_product(db: Session, product_id: int, data: product.ProductEdit) -> Products | None:
     product = db.get(Products, product_id)
 
-    if product is None:
+    if not product:
         return None
 
     changes = data.model_dump(exclude_unset=True)
@@ -89,34 +89,3 @@ def edit_product(db: Session, product_id: int, data: product.ProductEdit) -> Pro
     db.refresh(product)
 
     return product
-
-
-def add_product_image(
-    db: Session,
-    data: product.ProductImageAdd,
-    product_id: int,
-):
-    product = db.get(Products, product_id)
-
-    if product is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Product not found"
-        )
-
-    if not r2.object_exists(data.key):
-        raise HTTPException(
-            status_code=404,
-            detail="Image does not exist in R2"
-        )
-
-    image = Images(
-        product_id=product_id,
-        key=data.key,
-    )
-
-    db.add(image)
-    db.commit()
-    db.refresh(image)
-
-    return image

@@ -34,6 +34,7 @@ def create_presigned_upload(data: image_schema.ImagePresignRequest):
 def register_image(
         db: Session,
         data: image_schema.ImageCreate,
+        product_id: int,
 ):
     if not data.key.startswith("products/"):
         raise HTTPException(
@@ -58,22 +59,21 @@ def register_image(
             status_code=422,
             detail="Image is too big",
         )
-    if not data.key.startswith("products/"):
-        raise HTTPException(
-            status_code=422,
-            detail="Invalid key",
-        )
 
-    get_product_by_id(db, data.product_id)
-    return image.create_image(db, data.product_id, data.key)
+    get_product_by_id(db, product_id)
+    return image.create_image(db, product_id, data.key)
 
 
 def get_images(db: Session):
     return image.get_images(db)
 
 
-def delete_image(db: Session, image_id: int):
-    image_obj = image.get_image(db, image_id)
+def delete_image(
+    db: Session,
+    image_id: int,
+    product_id: int,
+):
+    image_obj = image.get_image(db, image_id, product_id)
 
     if not image_obj:
         raise HTTPException(
@@ -82,4 +82,8 @@ def delete_image(db: Session, image_id: int):
         )
 
     r2.delete_object(image_obj.key)
-    return image.delete_image(db, image_obj)
+
+    return image.delete_image(
+        db,
+        image_obj=image_obj,
+    )
