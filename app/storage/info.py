@@ -24,7 +24,7 @@ def add_info(db: Session, data: InfoAdd):
 def update_info(db: Session, slug: str, data: InfoUpdate):
     record = db.query(Info).filter(Info.slug == slug).first()
 
-    if record is None:
+    if not record:
         return None
 
     changes = data.model_dump(exclude_unset=True)
