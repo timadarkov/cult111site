@@ -1,0 +1,9 @@
+.git
+.env
+certs/
+venv/
+.venv/
+__pycache__/
+*.pyc
+.idea/
+.pytest_cache/
