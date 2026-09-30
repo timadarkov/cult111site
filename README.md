@@ -1,17 +1,17 @@
-## Запуск через Docker Compose
+## Running with Docker Compose
 
-Все команды ниже выполняются из папки `deploy/`.
+Unless stated otherwise, run the commands below from the `deploy/` directory.
 
-### Подготовка
+### Prerequisites
 
-Нужны Docker и Docker Compose.
+Docker and Docker Compose must be installed.
 
-В корне проекта должны находиться:
+The project root must contain:
 
-- `.env` — настройки приложения;
-- `certs/` — ключи для подписи и проверки JWT.
+- `.env` — application settings;
+- `certs/` — keys for signing and verifying JWTs.
 
-Пример настроек локальной базы в `.env`:
+Example local database settings in `.env`:
 
 ```dotenv
 DB_USER=local_user
@@ -21,14 +21,13 @@ DB_HOST=localhost
 DB_PORT=5432
 ```
 
-Также заполните остальные настройки, необходимые приложению.
+Also configure any other settings required by the application.
 
-При запуске через Compose адрес базы для бэкенда переопределяется на
-`postgres:5432`: `postgres` — имя сервиса базы в общей сети контейнеров.
+When running through Compose, the backend’s database address is overridden to `postgres:5432`. Here, `postgres` is the database service name on the shared container network.
 
-### Ключи RS256
+### RS256 Keys
 
-Если ключей ещё нет, выполните из корня проекта:
+If you do not have keys yet, run the following from the project root:
 
 ```bash
 mkdir -p certs
@@ -36,135 +35,121 @@ openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out certs/private.
 openssl pkey -in certs/private.pem -pubout -out certs/public.pem
 ```
 
-Пути в настройках `auth_jwt` должны соответствовать файлам внутри контейнера:
+The paths in the `auth_jwt` settings must match the files inside the container:
 
 - `/app/certs/private.pem`;
 - `/app/certs/public.pem`.
 
-Существующие ключи без необходимости не заменяйте: смена пары ключей
-сделает ранее выпущенные токены недействительными.
+Do not replace existing keys unnecessarily: replacing the key pair will invalidate previously issued tokens.
 
-Не добавляйте `.env` и приватный ключ в Git или Docker-образ.
-Они подключаются при запуске контейнера.
+Do not commit `.env` or the private key to Git or include them in the Docker image. They are mounted when the container starts.
 
-### Запуск локально
+### Running Locally
 
-Из корня проекта перейдите в папку конфигурации:
+From the project root, navigate to the configuration directory:
 
 ```bash
 cd deploy
 ```
 
-Соберите и запустите приложение:
+Build and start the application:
 
 ```bash
 docker compose --env-file ../.env up --build
 ```
 
-Compose использует базовый файл и `docker-compose.override.yml`.
-Запускаются бэкенд и Postgres 17.
+Compose uses the base file and `docker-compose.override.yml`. It starts the backend and PostgreSQL 17.
 
-После готовности базы скрипт запуска выполняет `alembic upgrade head`,
-затем запускает приложение.
+Once the database is ready, the startup script runs `alembic upgrade head`, then starts the application.
 
 Swagger: http://localhost:8000/docs
 
-Для запуска в фоне:
+To run in the background:
 
 ```bash
 docker compose --env-file ../.env up --build -d
 ```
 
-Изменения в подключённых `app/`, `main.py` и `database.py` вызывают
-перезагрузку приложения. При изменении зависимостей или Dockerfile
-повторите запуск с `--build`.
+Changes to the mounted `app/` directory, `main.py`, and `database.py` trigger an application reload. After changing dependencies or the Dockerfile, run the startup command again with `--build`.
 
-### Остановка и данные базы
+### Stopping Containers and Keeping Database Data
 
 ```bash
 docker compose --env-file ../.env down
 ```
 
-Именованный том базы сохраняется. При следующем запуске с тем же
-именем Compose-проекта используются прежние данные.
+The named database volume is preserved. The next startup uses the existing data, provided the Compose project name remains the same.
 
-Команда `down -v` удаляет том проекта вместе с данными базы.
+The `down -v` command deletes the project’s database volume and its data.
 
-### Запуск на продакшене
+### Running in Production
 
-На сервере подготовьте:
+Prepare the following on the server:
 
-- Docker и Docker Compose;
-- файлы проекта;
-- серверный `.env` в корне проекта;
-- ключи в `certs/`;
-- доступную внешнюю базу PostgreSQL.
+- Docker and Docker Compose;
+- the project files;
+- a server-specific `.env` file in the project root;
+- keys in `certs/`;
+- an accessible external PostgreSQL database.
 
-В серверном `.env` укажите реальные `DB_HOST`, `DB_PORT`, `DB_USER`,
-`DB_PASSWORD` и `DB_NAME` внешней базы. Если провайдер требует SSL,
-настройте его в подключении приложения.
+In the server’s `.env`, set `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` to the external database’s connection details. If the provider requires SSL, configure it in the application’s database connection.
 
-Из папки `deploy/` выполните:
+From the `deploy/` directory, run:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
 ```
 
-Dev-файл `docker-compose.override.yml` при этой команде не применяется.
+This command does not apply the development file, `docker-compose.override.yml`.
 
-В prod-режиме:
+In production:
 
-- контейнер Postgres не запускается;
-- используется код из образа, без монтирования исходников;
-- горячая перезагрузка отключена;
-- порт бэкенда на сервере не публикуется;
-- миграции выполняются перед запуском приложения.
+- no PostgreSQL container is started;
+- the application uses code from the image, without mounting source files;
+- automatic code reloading is disabled;
+- the backend port is not published on the host;
+- migrations run before the application starts.
 
-Доступ через nginx настраивается отдельным этапом.
+Access through nginx is configured in a separate step.
 
-Проверка состава prod-конфигурации:
+To check which services are included in the production configuration:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml config --services
 ```
 
-Ожидаемый результат — только `backend`.
+The output should contain only `backend`.
 
-### Логи и диагностика
+### Logs and Troubleshooting
 
-Логи локального бэкенда:
+Local backend logs:
 
 ```bash
 docker compose --env-file ../.env logs -f backend
 ```
 
-Логи локальной базы:
+Local database logs:
 
 ```bash
 docker compose --env-file ../.env logs -f postgres
 ```
 
-Состояние контейнеров:
+Container status:
 
 ```bash
 docker compose --env-file ../.env ps
 ```
 
-Логи на продакшене:
+Production logs:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f backend
 ```
 
-Если миграции завершились с ошибкой, приложение не запускается.
-Проверьте ошибку в логах, доступность базы и настройки подключения.
-После исправления повторите команду запуска.
+If migrations fail, the application will not start. Check the error in the logs, database availability, and connection settings. After fixing the issue, run the startup command again.
 
-Если миграционные файлы изменились, пересоберите образ с `--build`:
-папка `alembic/` в текущей конфигурации не монтируется с компьютера.
+If migration files have changed, rebuild the image with `--build`: the `alembic/` directory is not mounted from the host in the current configuration.
 
-Ошибка `Could not import module` означает, что нужно проверить путь
-к модулю приложения. В этом проекте используется `main:app`.
+A `Could not import module` error means you should check the application module path. This project uses `main:app`.
 
-Периодические запросы `GET /docs` — это проверка здоровья контейнера.
-Ответ `200 OK` означает, что страница документации доступна.
+Periodic `GET /docs` requests come from the container health check. A `200 OK` response means the documentation page is accessible.
