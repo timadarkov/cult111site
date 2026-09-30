@@ -1,3 +1,4 @@
+
 ## Running with Docker Compose
 
 Unless stated otherwise, run the commands below from the `deploy/` directory.
@@ -10,16 +11,6 @@ The project root must contain:
 
 - `.env` — application settings;
 - `certs/` — keys for signing and verifying JWTs.
-
-Example local database settings in `.env`:
-
-```dotenv
-DB_USER=local_user
-DB_PASSWORD=replace_with_your_password
-DB_NAME=cult111
-DB_HOST=localhost
-DB_PORT=5432
-```
 
 Also configure any other settings required by the application.
 
