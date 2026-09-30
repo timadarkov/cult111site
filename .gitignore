@@ -51,9 +51,6 @@ build/
 # Local uploads (если будут)
 uploads/
 
-# Docker
-docker-compose.override.yml
-
 #image
 /photos_r2
 
