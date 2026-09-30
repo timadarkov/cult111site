@@ -15,7 +15,7 @@ fastapi==0.125.0
 h11==0.16.0
 idna==3.18
 jmespath==1.1.0
-jwt==1.4.0
+PyJWT[crypto]==2.15.1
 mypy_extensions==1.1.0
 packaging==26.2
 pathspec==1.1.1

@@ -2,7 +2,6 @@ services:
   backend:
     build:
       context: ..
-      dockerfile: DockerFile
 
     env_file:
       - ../.env
