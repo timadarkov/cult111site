@@ -42,7 +42,7 @@ class Settings(BaseSettings):
 
     auth_jwt: AuthJWT = AuthJWT()
 
-    ENVIRONMENT: str
+    environment: str
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
