@@ -6,7 +6,10 @@ from app.api.v1.router import router as api_v1
 from app.core.config import settings
 
 
-app = FastAPI()
+app = FastAPI(
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json",
+)
 
 origins = settings.host_url
 
