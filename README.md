@@ -144,3 +144,10 @@ If migration files have changed, rebuild the image with `--build`: the `alembic/
 A `Could not import module` error means you should check the application module path. This project uses `main:app`.
 
 Periodic `GET /docs` requests come from the container health check. A `200 OK` response means the documentation page is accessible.
+
+### Create first admin
+docker compose \
+  --env-file .env \
+  -f deploy/docker-compose.yml \
+  -f deploy/docker-compose.override.yml \
+  exec backend python -m scripts.create_first_admin
