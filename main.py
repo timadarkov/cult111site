@@ -1,14 +1,19 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+import logging
 
 from app.api.v1.router import router as api_v1
 from app.core.config import settings
 
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
+
+from app.core.middleware import log_requests
 
 from app.core.rate_limit import limiter
+from app.core.logging import setup_logging
 
 
 is_prod = settings.environment == "production"
@@ -19,6 +24,8 @@ app = FastAPI(
     redoc_url=None,
     openapi_url=None if is_prod else "/api/openapi.json",
 )
+
+app.middleware("http")(log_requests)
 
 app.state.limiter = limiter
 
@@ -45,3 +52,9 @@ origins = settings.host_url
 
 
 app.include_router(api_v1, prefix="/api/v1")
+
+setup_logging()
+
+
+logger = logging.getLogger(__name__)
+logger.info("Application started")
