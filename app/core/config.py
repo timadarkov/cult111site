@@ -43,7 +43,7 @@ class Settings(BaseSettings):
 
     auth_jwt: AuthJWT = AuthJWT()
 
-    environment: Literal["local", "production"] = "local"
+    environment: Literal["local", "production"] = "production"
 
     cors_origins: list[str] = []
 
