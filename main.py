@@ -15,8 +15,12 @@ from app.core.middleware import log_requests
 from app.core.rate_limit import limiter
 from app.core.logging import setup_logging
 
+setup_logging()
+logger = logging.getLogger(__name__)
+
 
 is_prod = settings.environment == "production"
+
 
 app = FastAPI(
     debug=not is_prod,
@@ -24,6 +28,7 @@ app = FastAPI(
     redoc_url=None,
     openapi_url=None if is_prod else "/api/openapi.json",
 )
+
 
 app.middleware("http")(log_requests)
 
@@ -42,6 +47,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(api_v1, prefix="/api/v1")
+
 
 @app.get("/health", include_in_schema=False)
 def health():
@@ -50,11 +57,4 @@ def health():
 
 origins = settings.host_url
 
-
-app.include_router(api_v1, prefix="/api/v1")
-
-setup_logging()
-
-
-logger = logging.getLogger(__name__)
 logger.info("Application started")
