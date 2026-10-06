@@ -5,11 +5,20 @@ from app.dependency import get_db, get_current_user
 from app.schemas import auth, user
 from app.services import auth_services
 
+from fastapi import Request
+
+from app.core.rate_limit import limiter
+
 router = APIRouter(prefix="", tags=["Auth"])
 
 
 @router.post("/login", response_model=auth.UserLoginResponse)
-def login(data: auth.UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(
+    request: Request,
+    data: auth.UserLogin,
+    db: Session = Depends(get_db),
+):
     return auth_services.login(
         db=db,
         username=data.username,
