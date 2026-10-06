@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -42,12 +43,19 @@ class Settings(BaseSettings):
 
     auth_jwt: AuthJWT = AuthJWT()
 
-    environment: str
+    environment: Literal["local", "production"] = "production"
+
+    cors_origins: list[str] = []
+
+    @property
+    def debug(self) -> bool:
+        return self.environment == "local"
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        case_sensitive=False,
     )
 
 
