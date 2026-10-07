@@ -22,12 +22,9 @@ services:
 
   backend:
     environment:
-      DB_HOST: postgres
-      DB_PORT: "5432"
-
-    depends_on:
-      postgres:
-        condition: service_healthy
+      DB_HOST: ${DB_HOST}
+      DB_DIRECT_HOST: ${DB_DIRECT_HOST}
+      DB_PORT: ${DB_PORT}
 
     volumes:
       - ../app:/app/app
