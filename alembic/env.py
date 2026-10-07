@@ -20,7 +20,7 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
 
-    url = settings.database_url
+    url = settings.database_direct_url
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -35,7 +35,7 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
 
     connectable = create_engine(
-        settings.database_url,
+        settings.database_direct_url,
         poolclass=pool.NullPool,
     )
 
