@@ -3,14 +3,10 @@ services:
     build:
       context: ..
 
-    env_file:
-      - ../.env
-
     restart: unless-stopped
 
     volumes:
       - ../certs:/app/certs:ro
-      - ../.env:/app/.env:ro
 
     healthcheck:
       test:
