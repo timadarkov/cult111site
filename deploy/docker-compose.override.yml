@@ -21,10 +21,17 @@ services:
       start_period: 10s
 
   backend:
+    env_file:
+      - ../.env
+
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_DIRECT_HOST: ${DB_DIRECT_HOST}
-      DB_PORT: ${DB_PORT}
+      DB_HOST: postgres
+      DB_DIRECT_HOST: postgres
+      DB_PORT: "5432"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
 
     volumes:
       - ../app:/app/app

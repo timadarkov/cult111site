@@ -26,13 +26,15 @@ class Settings(BaseSettings):
     db_port: int
     db_direct_host: str
 
+    db_sslmode: str = "require"
+
     @property
     def database_url(self) -> str:
         return (
             f"postgresql+psycopg2://"
             f"{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
-            f"?sslmode=require"
+            f"?sslmode={self.db_sslmode}"
         )
 
     @property
@@ -41,7 +43,7 @@ class Settings(BaseSettings):
             f"postgresql+psycopg2://"
             f"{self.db_user}:{self.db_password}"
             f"@{self.db_direct_host}:{self.db_port}/{self.db_name}"
-            f"?sslmode=require"
+            f"?sslmode={self.db_sslmode}"
         )
 
     host_url: list[str]
