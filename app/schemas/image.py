@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, computed_field
 
-from app.core.config import Settings
+from app.core.config import settings
 
 
 class ImagePresignRequest(BaseModel):
@@ -26,4 +26,4 @@ class ImageSchemaOut(BaseModel):
     @computed_field
     @property
     def url(self) -> str:
-        return f"{Settings.r2_public_url.rstrip('/')}/{self.key}"
+        return f"{settings.r2_public_url.rstrip('/')}/{self.key}"
