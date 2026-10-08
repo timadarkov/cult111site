@@ -4,6 +4,10 @@ from sqlalchemy.orm import Session
 from app.dependency import get_db
 from app.services import image_services, product_services
 from app.schemas import product
+from app.schemas import image_copy
+from app.services import image_copy_services
+from app.schemas import image_settings
+from app.services import image_settings_services
 
 
 router = APIRouter(
@@ -78,4 +82,43 @@ def add_product_image(
         db=db,
         data=data,
         product_id=product_id,
+    )
+
+
+@router.patch("/{product_id}/images/main", status_code=204)
+def update_main_image(
+    product_id: int,
+    data: image_settings.ImageMainUpdate,
+    db: Session = Depends(get_db),
+):
+    image_settings_services.update_main_image(
+        db=db,
+        product_id=product_id,
+        data=data,
+    )
+
+
+@router.patch("/{product_id}/images/order", status_code=204)
+def update_image_order(
+    product_id: int,
+    data: image_settings.ImageOrderUpdate,
+    db: Session = Depends(get_db),
+):
+    image_settings_services.update_image_order(
+        db=db,
+        product_id=product_id,
+        data=data,
+    )
+
+
+@router.post("/{product_id}/images/copy", response_model=image_copy.ImageCopyResponse, status_code=201)
+def copy_product_image(
+    product_id: int,
+    data: image_copy.ImageCopyRequest,
+    db: Session = Depends(get_db),
+):
+    return image_copy_services.copy_product_image(
+        db=db,
+        product_id=product_id,
+        data=data,
     )
