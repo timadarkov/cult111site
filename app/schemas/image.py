@@ -19,6 +19,8 @@ class ImageCreate(BaseModel):
 class ImageSchemaOut(BaseModel):
     id: int
     product_id: int
+    is_main: bool
+    position: int
     key: str
 
     @computed_field
