@@ -58,3 +58,4 @@ uploads/
 # Certificates
 .pem
 certs/
+/certbot/

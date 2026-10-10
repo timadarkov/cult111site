@@ -1,6 +1,50 @@
+#  =====================================
+# HTTP — STOREFRONT
+# =====================================
 server {
     listen 80;
     server_name ${SERVER_NAME} www.${SERVER_NAME};
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+        try_files $uri =404;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# =====================================
+# HTTP — ADMIN
+# =====================================
+server {
+    listen 80;
+    server_name admin.${SERVER_NAME};
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+        try_files $uri =404;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# =====================================
+# HTTPS — STOREFRONT
+# =====================================
+server {
+    listen 443 ssl;
+    server_name ${SERVER_NAME} www.${SERVER_NAME};
+
+    ssl_certificate /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
 
     client_max_body_size 10m;
 
@@ -27,9 +71,17 @@ server {
     }
 }
 
+# =====================================
+# HTTPS — ADMIN
+# =====================================
 server {
-    listen 80;
+    listen 443 ssl;
     server_name admin.${SERVER_NAME};
+
+    ssl_certificate /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
 
     client_max_body_size 10m;
 
@@ -56,8 +108,24 @@ server {
     }
 }
 
+# =====================================
+# DEFAULT HTTP
+# =====================================
 server {
     listen 80 default_server;
     server_name _;
+    return 444;
+}
+
+# =====================================
+# DEFAULT HTTPS
+# =====================================
+server {
+    listen 443 ssl default_server;
+    server_name _;
+
+    ssl_certificate /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
+
     return 444;
 }
