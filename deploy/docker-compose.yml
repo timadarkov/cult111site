@@ -41,6 +41,8 @@ services:
       - ${ADMIN_PATH}:/usr/share/nginx/admin:ro
       - ../certbot/www:/var/www/certbot:ro
       - ../certbot/conf:/etc/letsencrypt:ro
+      - /home/deploy/cult111main:/usr/share/nginx/main:ro
+      - /home/deploy/sewerroomfront:/usr/share/nginx/sewerroom:ro
 
   certbot:
     image: certbot/certbot:latest
