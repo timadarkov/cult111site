@@ -1,3 +1,23 @@
+# =====================================
+# HTTPS — SEWERROOM
+# =====================================
+server {
+    listen 443 ssl;
+    server_name sewerroom.com www.sewerroom.com;
+
+    ssl_certificate /etc/letsencrypt/live/sewerroom.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/sewerroom.com/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root /usr/share/nginx/sewerroom;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
 #  =====================================
 # HTTP — STOREFRONT
 # =====================================
@@ -91,7 +111,7 @@ server {
 
     client_max_body_size 10m;
 
-    root /usr/share/nginx/main;
+    root /usr/share/nginx/store;
     index index.html;
 
     location /api/ {

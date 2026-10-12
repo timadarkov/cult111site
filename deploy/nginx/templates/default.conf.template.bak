@@ -35,11 +35,54 @@ server {
 }
 
 # =====================================
-# HTTPS — STOREFRONT
+# HTTPS — MAIN
 # =====================================
 server {
     listen 443 ssl;
     server_name ${SERVER_NAME} www.${SERVER_NAME};
+
+    ssl_certificate /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    client_max_body_size 10m;
+
+    root /usr/share/nginx/main;
+    index index.html;
+
+    location ~ \.mjs$ {
+        types {
+            application/javascript mjs;
+        }
+
+        try_files $uri =404;
+    }  
+
+    location /api/ {
+        proxy_pass http://backend:8000;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /assets/ {
+        try_files $uri =404;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# HTTPS — STORE
+server {
+    listen 443 ssl;
+    server_name store.${SERVER_NAME};
 
     ssl_certificate /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
@@ -105,6 +148,36 @@ server {
 
     location / {
         try_files $uri $uri/ /index.html;
+    }
+}
+
+# HTTPS — MUSIC
+server {
+    listen 443 ssl;
+    server_name music.${SERVER_NAME};
+
+    ssl_certificate /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
+
+    location / {
+        return 200 "Music CULT111 — coming soon\n";
+        add_header Content-Type text/plain;
+    }
+}
+
+# HTTP — SEWERROOM
+server {
+    listen 80;
+    server_name sewerroom.com www.sewerroom.com;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+        try_files $uri =404;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
     }
 }
 
