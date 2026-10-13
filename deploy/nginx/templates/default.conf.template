@@ -178,6 +178,9 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
+  
+    root /usr/share/nginx/store;
+    index index.html;
 
     location / {
         return 200 "Music CULT111 — coming soon\n";

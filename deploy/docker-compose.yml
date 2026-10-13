@@ -43,6 +43,9 @@ services:
       - ../certbot/conf:/etc/letsencrypt:ro
       - /home/deploy/cult111main:/usr/share/nginx/main:ro
       - /home/deploy/sewerroomfront:/usr/share/nginx/sewerroom:ro
+      - /home/deploy/cult111musicfront:/usr/share/nginx/musicfrint:ro
+      - /home/deploy/cult111musicback:/usr/share/nginx/musicback:ro
+
 
   certbot:
     image: certbot/certbot:latest
