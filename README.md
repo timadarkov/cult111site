@@ -128,6 +128,6 @@ Both frontend repositories provide `npm run check` and `npm test`. Test availabi
 
 ## Security before publication
 
-The exposed local database password has been rotated and a sanitized history has been prepared in an isolated copy. Publication remains blocked until that history is applied, old GitHub references are addressed, and potential exposure from previously shared Docker images is resolved. A clean default secret-scanner result alone is insufficient for short/default database passwords.
+The exposed local database password has been rotated and the repository branch histories have been sanitized. GitHub still retains original commits through closed pull-request references; those require separate follow-up before publication. The local Docker image was found to contain a production environment file, so image distribution and credential exposure must also be reviewed separately. A clean default secret-scanner result alone is insufficient for short/default database passwords.
 
 Environment files and private signing keys must stay out of Git and Docker build contexts. Existing images built before `.env.prod` was excluded need review; if an image containing secrets was shared, rotate those credentials and replace the image. Repository visibility changes and history rewrites require the owner's explicit approval after remediation.
