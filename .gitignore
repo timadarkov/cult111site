@@ -13,6 +13,8 @@ env/
 # Environment variables
 .env
 .env.prod
+.env.*
+!.env.example
 
 # VS Code
 .vscode/
@@ -57,5 +59,9 @@ uploads/
 
 # Certificates
 .pem
+*.pem
+*.key
+*.p12
+*.pfx
 certs/
 /certbot/

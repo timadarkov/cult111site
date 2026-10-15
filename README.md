@@ -1,153 +1,133 @@
+# CULT111 — Catalog API
 
-## Running with Docker Compose
+CULT111 is a product catalog with a public storefront and a separate administration panel. The backend provides product, brand, category and information-page APIs, user authentication, administrative access checks, and image storage integration.
 
-Unless stated otherwise, run the commands below from the `deploy/` directory.
+Live storefront: [store.cult111.com](https://store.cult111.com/)
+Main site: [cult111.com](https://cult111.com/)
 
-### Prerequisites
+Both pages returned HTTP 200 on 15 October 2026. This check confirms availability, not a full end-to-end audit.
 
-Docker and Docker Compose must be installed.
+## Stack
 
-The project root must contain:
+- Python 3.14 (Docker image), FastAPI, Pydantic / pydantic-settings, Uvicorn.
+- PostgreSQL, synchronous SQLAlchemy / psycopg2, Alembic migrations.
+- JWT access and refresh tokens signed with RS256; bcrypt password hashing.
+- Cloudflare R2 through the S3-compatible boto3 API, presigned image uploads.
+- Docker Compose; Nginx reverse proxy and TLS configuration.
+- Separate storefront and admin repositories use HTML, CSS, JavaScript and Node.js local servers.
 
-- `.env` — application settings;
-- `certs/` — keys for signing and verifying JWTs.
+## Related repositories
 
-Also configure any other settings required by the application.
+- Backend: `timadarkov/cult111site` (this repository).
+- Storefront: `timadarkov/store111front`.
+- Admin panel: `timadarkov/admin111front`.
 
-When running through Compose, the backend’s database address is overridden to `postgres:5432`. Here, `postgres` is the database service name on the shared container network.
+Repository access depends on visibility settings. Do not advertise these as public source links until the security release checks are complete.
 
-### RS256 Keys
+## Features and scope
 
-If you do not have keys yet, run the following from the project root:
+The public API serves visible products, brands, categories and information pages. Products support brand/category filters. Administrative routes manage catalog content, users and product images. The image code supports uploads, visibility, ordering, main-image selection and copying.
 
-```bash
+This is a catalog storefront: its order action opens contact information. The inspected code does not implement a public checkout, payment processing or stock by size. The database layer is synchronous.
+
+## Local setup
+
+Prerequisites: Docker with Docker Compose, OpenSSL, and Node.js 20+ for the two frontends. Use development credentials and a separate development database/bucket.
+
+From the backend repository root, create a local settings file only if one does not already exist:
+
+```sh
+cp -n .env.example .env
+```
+
+Edit `.env` locally. Set `DB_USER`, `DB_NAME`, a new unique `DB_PASSWORD`, `DB_HOST=postgres`, `DB_DIRECT_HOST=postgres`, `DB_PORT=5432`, `DB_SSLMODE=disable` and `ENVIRONMENT=local`. The database host is overridden to `postgres` by the development Compose file. `HOST_URL` and `CORS_ORIGINS` are JSON lists; local frontend origins are `http://localhost:5000` and `http://localhost:5001`.
+
+For working image uploads, configure `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` and `R2_PUBLIC_URL` for a development bucket. The example uses a valid dummy HTTPS endpoint so imports can initialize without real credentials; storage operations require real development settings.
+
+Create a local JWT signing key pair only if these files do not already exist:
+
+```sh
 mkdir -p certs
 openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out certs/private.pem
 openssl pkey -in certs/private.pem -pubout -out certs/public.pem
+chmod 600 certs/private.pem
 ```
 
-The paths in the `auth_jwt` settings must match the files inside the container:
+Replacing an existing signing key invalidates tokens. Do not overwrite production keys for local testing.
 
-- `/app/certs/private.pem`;
-- `/app/certs/public.pem`.
+Start the development database, then run the backend with an explicit localhost port:
 
-Do not replace existing keys unnecessarily: replacing the key pair will invalidate previously issued tokens.
-
-Do not commit `.env` or the private key to Git or include them in the Docker image. They are mounted when the container starts.
-
-### Running Locally
-
-From the project root, navigate to the configuration directory:
-
-```bash
+```sh
 cd deploy
+docker compose --env-file ../.env -f docker-compose.yml -f docker-compose.override.yml build backend
+docker compose --env-file ../.env -f docker-compose.yml -f docker-compose.override.yml up -d postgres
+docker compose --env-file ../.env -f docker-compose.yml -f docker-compose.override.yml run --rm --no-deps -p 127.0.0.1:8000:8000 backend
 ```
 
-Build and start the application:
+The final command stays attached. The entrypoint runs `alembic upgrade head` before Uvicorn starts. These commands do not start Nginx, whose current template requires production TLS certificates and server-specific paths. After changing dependencies, rebuild the backend image before running it:
 
-```bash
-docker compose --env-file ../.env up --build
+```sh
+docker compose --env-file ../.env -f docker-compose.yml -f docker-compose.override.yml build backend
 ```
 
-Compose uses the base file and `docker-compose.override.yml`. It starts the backend and PostgreSQL 17.
+- API base: `http://127.0.0.1:8000/api/v1`
+- Development Swagger UI: `http://127.0.0.1:8000/api/docs`
+- Development OpenAPI: `http://127.0.0.1:8000/api/openapi.json`
+- Health: `http://127.0.0.1:8000/health` (process liveness, not a database/storage probe).
 
-Once the database is ready, the startup script runs `alembic upgrade head`, then starts the application.
+In another terminal, from `deploy/`, create the first administrator interactively if none exists:
 
-Swagger: http://localhost:8000/docs
-
-To run in the background:
-
-```bash
-docker compose --env-file ../.env up --build -d
+```sh
+docker compose --env-file ../.env -f docker-compose.yml -f docker-compose.override.yml run --rm --no-deps backend python -m scripts.create_first_admin
 ```
 
-Changes to the mounted `app/` directory, `main.py`, and `database.py` trigger an application reload. After changing dependencies or the Dockerfile, run the startup command again with `--build`.
+The script prompts for credentials and refuses to bootstrap another account if an administrator already exists. Do not put passwords in shell commands.
 
-### Stopping Containers and Keeping Database Data
+Stop the attached backend with Ctrl+C. To stop development services while preserving the database volume:
 
-```bash
-docker compose --env-file ../.env down
+```sh
+docker compose --env-file ../.env -f docker-compose.yml -f docker-compose.override.yml down
 ```
 
-The named database volume is preserved. The next startup uses the existing data, provided the Compose project name remains the same.
+Do not add `-v` unless you intend to delete the local database volume. Changing `DB_PASSWORD` in `.env` alone does not change the password of an existing PostgreSQL role.
 
-The `down -v` command deletes the project’s database volume and its data.
+## Storefront and admin
 
-### Running in Production
+Start the backend first, then run each frontend from its own repository:
 
-Prepare the following on the server:
-
-- Docker and Docker Compose;
-- the project files;
-- a server-specific `.env` file in the project root;
-- keys in `certs/`;
-- an accessible external PostgreSQL database.
-
-In the server’s `.env`, set `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` to the external database’s connection details. If the provider requires SSL, configure it in the application’s database connection.
-
-From the `deploy/` directory, run:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+```sh
+# storefront repository
+API_ORIGIN=http://127.0.0.1:8000 npm run start:front
+# admin repository, in a separate terminal
+API_ORIGIN=http://127.0.0.1:8000 npm start
 ```
 
-This command does not apply the development file, `docker-compose.override.yml`.
+Open `http://localhost:5000` and `http://localhost:5001`. The Node servers proxy requests to the backend. The admin panel requires an account with `is_admin=true`.
 
-In production:
+## Deployment
 
-- no PostgreSQL container is started;
-- the application uses code from the image, without mounting source files;
-- automatic code reloading is disabled;
-- the backend port is not published on the host;
-- migrations run before the application starts.
+The production Compose overlay reads `.env.prod`. Pass that file explicitly for Compose interpolation as well:
 
-Access through nginx is configured in a separate step.
-
-To check which services are included in the production configuration:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml config --services
+```sh
+cd deploy
+docker compose --env-file ../.env.prod -f docker-compose.yml -f docker-compose.prod.yml config --services
 ```
 
-The output should contain only `backend`.
+The base file includes `backend`, `nginx` and an optional `certbot` tools profile. Production uses an external PostgreSQL database. Before starting production, configure the deployment paths, `SERVER_NAME`, database SSL settings and TLS certificates required by the Nginx template. The template also references other hosted sites; review it for your deployment rather than assuming it is portable.
 
-### Logs and Troubleshooting
+## Verification
 
-Local backend logs:
+The backend includes focused unittest tests in `tests/test_image_settings.py`. They use in-memory SQLite and mocked storage, not the production database. Running them requires the application dependencies and HTTPX, which is not currently listed in `requirements.txt`:
 
-```bash
-docker compose --env-file ../.env logs -f backend
+```sh
+python -m pip install httpx
+python tests/test_image_settings.py
 ```
 
-Local database logs:
+Both frontend repositories provide `npm run check` and `npm test`. Test availability does not imply full coverage or continuous integration.
 
-```bash
-docker compose --env-file ../.env logs -f postgres
-```
+## Security before publication
 
-Container status:
+The exposed local database password has been rotated and a sanitized history has been prepared in an isolated copy. Publication remains blocked until that history is applied, old GitHub references are addressed, and potential exposure from previously shared Docker images is resolved. A clean default secret-scanner result alone is insufficient for short/default database passwords.
 
-```bash
-docker compose --env-file ../.env ps
-```
-
-Production logs:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f backend
-```
-
-If migrations fail, the application will not start. Check the error in the logs, database availability, and connection settings. After fixing the issue, run the startup command again.
-
-If migration files have changed, rebuild the image with `--build`: the `alembic/` directory is not mounted from the host in the current configuration.
-
-A `Could not import module` error means you should check the application module path. This project uses `main:app`.
-
-Periodic `GET /docs` requests come from the container health check. A `200 OK` response means the documentation page is accessible.
-
-### Create first admin
-docker compose \
-  --env-file .env \
-  -f deploy/docker-compose.yml \
-  -f deploy/docker-compose.override.yml \
-  exec backend python -m scripts.create_first_admin
+Environment files and private signing keys must stay out of Git and Docker build contexts. Existing images built before `.env.prod` was excluded need review; if an image containing secrets was shared, rotate those credentials and replace the image. Repository visibility changes and history rewrites require the owner's explicit approval after remediation.
