@@ -1,42 +1,40 @@
-annotated-doc==0.0.5
-annotated-types==0.8.0
-anyio==4.14.2
-bcrypt==5.0.0
-boto3==1.43.72
-botocore==1.43.72
-certifi==2026.6.17
-cffi==2.1.1
-charset-normalizer==3.4.9
-click==8.4.2
-cryptography==50.0.1
-dnspython==2.8.0
-email-validator==2.3.0
-fastapi==0.125.0
-h11==0.16.0
-idna==3.18
-jmespath==1.1.0
-PyJWT[crypto]==2.15.1
-mypy_extensions==1.1.0
-packaging==26.2
-pathspec==1.1.1
-platformdirs==4.10.0
-psycopg2-binary==2.9.12
-pycodestyle==2.14.0
-pycparser==3.0
-pydantic==2.12.5
-pydantic-settings==2.15.0
-pydantic_core==2.41.5
-python-dateutil==2.9.0.post0
-python-dotenv==1.2.2
-pytokens==0.4.1
-requests==2.34.2
-s3transfer==0.19.2
-six==1.17.0
-SQLAlchemy==2.0.45
-starlette==0.50.0
-typing-inspection==0.4.4
-typing_extensions==4.16.0
-urllib3==2.7.0
-uvicorn==0.38.0
-alembic==1.20.0
-slowapi==0.1.10
+alembic==1.20.0 ; python_version == "3.14"
+annotated-doc==0.0.5 ; python_version == "3.14"
+annotated-types==0.8.0 ; python_version == "3.14"
+anyio==4.15.1 ; python_version == "3.14"
+bcrypt==5.0.0 ; python_version == "3.14"
+boto3==1.43.72 ; python_version == "3.14"
+botocore==1.43.114 ; python_version == "3.14"
+cffi==2.1.1 ; python_version == "3.14" and platform_python_implementation != "PyPy"
+click==8.5.0 ; python_version == "3.14"
+cryptography==50.0.2 ; python_version == "3.14"
+deprecated==3.0.0 ; python_version == "3.14"
+dnspython==2.9.0 ; python_version == "3.14"
+email-validator==2.3.0 ; python_version == "3.14"
+fastapi==0.125.0 ; python_version == "3.14"
+greenlet==3.5.6 ; python_version == "3.14" and (platform_machine == "aarch64" or platform_machine == "ppc64le" or platform_machine == "x86_64" or platform_machine == "amd64" or platform_machine == "AMD64" or platform_machine == "win32" or platform_machine == "WIN32")
+h11==0.16.0 ; python_version == "3.14"
+idna==3.20 ; python_version == "3.14"
+jmespath==1.1.0 ; python_version == "3.14"
+limits==5.8.0 ; python_version == "3.14"
+mako==1.4.3 ; python_version == "3.14"
+markupsafe==3.0.4 ; python_version == "3.14"
+packaging==26.3 ; python_version == "3.14"
+psycopg2-binary==2.9.12 ; python_version == "3.14"
+pycparser==3.11 ; platform_python_implementation != "PyPy" and implementation_name != "PyPy" and python_version == "3.14"
+pydantic-core==2.41.5 ; python_version == "3.14"
+pydantic-settings==2.15.0 ; python_version == "3.14"
+pydantic==2.12.5 ; python_version == "3.14"
+pyjwt==2.15.1 ; python_version == "3.14"
+python-dateutil==2.9.0.post0 ; python_version == "3.14"
+python-dotenv==1.2.4 ; python_version == "3.14"
+s3transfer==0.19.2 ; python_version == "3.14"
+six==1.17.0 ; python_version == "3.14"
+slowapi==0.1.10 ; python_version == "3.14"
+sqlalchemy==2.0.45 ; python_version == "3.14"
+starlette==0.50.0 ; python_version == "3.14"
+typing-extensions==4.16.0 ; python_version == "3.14"
+typing-inspection==0.4.4 ; python_version == "3.14"
+urllib3==2.8.0 ; python_version == "3.14"
+uvicorn==0.38.0 ; python_version == "3.14"
+wrapt==2.5.1 ; python_version == "3.14"
