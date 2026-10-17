@@ -1,50 +1,24 @@
-# CULT111 — Catalog API
 
-CULT111 is a product catalog with a public storefront and a separate administration panel. The backend provides product, brand, category and information-page APIs, user authentication, administrative access checks, and image storage integration.
+## Running with Docker Compose
 
-Live storefront: [store.cult111.com](https://store.cult111.com/)
-Main site: [cult111.com](https://cult111.com/)
+Unless stated otherwise, run the commands below from the `deploy/` directory.
 
-Both pages returned HTTP 200 on 15 October 2026. This check confirms availability, not a full end-to-end audit.
+### Prerequisites
 
-## Stack
+Docker and Docker Compose must be installed.
 
-- Python 3.14 (Docker image), FastAPI, Pydantic / pydantic-settings, Uvicorn.
-- PostgreSQL, synchronous SQLAlchemy / psycopg2, Alembic migrations.
-- JWT access and refresh tokens signed with RS256; bcrypt password hashing.
-- Cloudflare R2 through the S3-compatible boto3 API, presigned image uploads.
-- Docker Compose; Nginx reverse proxy and TLS configuration.
-- Separate storefront and admin repositories use HTML, CSS, JavaScript and Node.js local servers.
+The project root must contain:
 
-## Related repositories
+- `.env` — application settings;
+- `certs/` — keys for signing and verifying JWTs.
 
-- Backend: `timadarkov/cult111site` (this repository).
-- Storefront: `timadarkov/store111front`.
-- Admin panel: `timadarkov/admin111front`.
+Also configure any other settings required by the application.
 
-Repository access depends on visibility settings. Do not advertise these as public source links until the security release checks are complete.
+When running through Compose, the backend’s database address is overridden to `postgres:5432`. Here, `postgres` is the database service name on the shared container network.
 
-## Features and scope
+### RS256 Keys
 
-The public API serves visible products, brands, categories and information pages. Products support brand/category filters. Administrative routes manage catalog content, users and product images. The image code supports uploads, visibility, ordering, main-image selection and copying.
-
-This is a catalog storefront: its order action opens contact information. The inspected code does not implement a public checkout, payment processing or stock by size. The database layer is synchronous.
-
-## Local setup
-
-Prerequisites: Docker with Docker Compose, OpenSSL, and Node.js 20+ for the two frontends. Use development credentials and a separate development database/bucket.
-
-From the backend repository root, create a local settings file only if one does not already exist:
-
-```sh
-cp -n .env.example .env
-```
-
-Edit `.env` locally. Set `DB_USER`, `DB_NAME`, a new unique `DB_PASSWORD`, `DB_HOST=postgres`, `DB_DIRECT_HOST=postgres`, `DB_PORT=5432`, `DB_SSLMODE=disable` and `ENVIRONMENT=local`. The database host is overridden to `postgres` by the development Compose file. `HOST_URL` and `CORS_ORIGINS` are JSON lists; local frontend origins are `http://localhost:5000` and `http://localhost:5001`.
-
-For working image uploads, configure `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` and `R2_PUBLIC_URL` for a development bucket. The example uses a valid dummy HTTPS endpoint so imports can initialize without real credentials; storage operations require real development settings.
-
-Create a local JWT signing key pair only if these files do not already exist:
+If you do not have keys yet, run the following from the project root:
 
 ```sh
 mkdir -p certs
@@ -113,21 +87,45 @@ cd deploy
 docker compose --env-file ../.env.prod -f docker-compose.yml -f docker-compose.prod.yml config --services
 ```
 
-The base file includes `backend`, `nginx` and an optional `certbot` tools profile. Production uses an external PostgreSQL database. Before starting production, configure the deployment paths, `SERVER_NAME`, database SSL settings and TLS certificates required by the Nginx template. The template also references other hosted sites; review it for your deployment rather than assuming it is portable.
+The output should contain only `backend`.
 
-## Verification
+### Logs and Troubleshooting
 
-The backend includes focused unittest tests in `tests/test_image_settings.py`. They use in-memory SQLite and mocked storage, not the production database. Running them requires the application dependencies and HTTPX, which is not currently listed in `requirements.txt`:
+Local backend logs:
 
-```sh
-python -m pip install httpx
-python tests/test_image_settings.py
+```bash
+docker compose --env-file ../.env logs -f backend
 ```
 
-Both frontend repositories provide `npm run check` and `npm test`. Test availability does not imply full coverage or continuous integration.
+Local database logs:
 
-## Security before publication
+```bash
+docker compose --env-file ../.env logs -f postgres
+```
 
-The exposed local database password has been rotated and the repository branch histories have been sanitized. GitHub still retains original commits through closed pull-request references; those require separate follow-up before publication. The local Docker image was found to contain a production environment file, so image distribution and credential exposure must also be reviewed separately. A clean default secret-scanner result alone is insufficient for short/default database passwords.
+Container status:
 
-Environment files and private signing keys must stay out of Git and Docker build contexts. Existing images built before `.env.prod` was excluded need review; if an image containing secrets was shared, rotate those credentials and replace the image. Repository visibility changes and history rewrites require the owner's explicit approval after remediation.
+```bash
+docker compose --env-file ../.env ps
+```
+
+Production logs:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f backend
+```
+
+If migrations fail, the application will not start. Check the error in the logs, database availability, and connection settings. After fixing the issue, run the startup command again.
+
+If migration files have changed, rebuild the image with `--build`: the `alembic/` directory is not mounted from the host in the current configuration.
+
+A `Could not import module` error means you should check the application module path. This project uses `main:app`.
+
+Periodic `GET /docs` requests come from the container health check. A `200 OK` response means the documentation page is accessible.
+
+### Create first admin
+docker compose \
+  --env-file .env \
+  -f deploy/docker-compose.yml \
+  -f deploy/docker-compose.override.yml \
+  exec backend python -m scripts.create_first_admin
