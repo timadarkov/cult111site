@@ -38,7 +38,7 @@ docker compose --env-file ../.env -f docker-compose.yml -f docker-compose.overri
 docker compose --env-file ../.env -f docker-compose.yml -f docker-compose.override.yml run --rm --no-deps -p 127.0.0.1:8000:8000 backend
 ```
 
-The final command stays attached. The entrypoint runs `alembic upgrade head` before Uvicorn starts. These commands do not start Nginx, whose current template requires production TLS certificates and server-specific paths. After changing dependencies, rebuild the backend image before running it:
+The final command stays attached. The entrypoint runs `alembic upgrade head` before Uvicorn starts. These commands start the backend without Nginx. For local development, Nginx can be started separately using the HTTP-only configuration in deploy/nginx/local.conf. Production Nginx uses HTTPS with TLS certificates. After changing dependencies, rebuild the backend image before running it:
 
 ```sh
 docker compose --env-file ../.env -f docker-compose.yml -f docker-compose.override.yml build backend
@@ -129,3 +129,96 @@ docker compose \
   -f deploy/docker-compose.yml \
   -f deploy/docker-compose.override.yml \
   exec backend python -m scripts.create_first_admin
+
+
+## Dependency Management
+
+Python dependencies are managed with **Poetry 2.x**.
+
+- `pyproject.toml` — declares direct dependencies and version constraints.
+- `poetry.lock` — locks exact versions of all dependencies.
+- `requirements.txt` — generated from `poetry.lock` for Docker builds.
+
+### Dependency Groups
+
+- `main` — production dependencies required by the application.
+- `dev` — development and testing tools (`pytest`, `pytest-asyncio`, `httpx`).
+
+### Setup
+
+Install Poetry separately from the project environment.
+
+Configure Poetry to create `.venv` inside the project:
+
+```bash
+poetry config virtualenvs.in-project true --local
+```
+
+Install production and development dependencies:
+
+```bash
+poetry install
+```
+
+Install only production dependencies:
+
+```bash
+poetry install --only main
+```
+
+Run commands inside the Poetry environment:
+
+```bash
+poetry run python --version
+poetry run pytest
+```
+
+### Managing Dependencies
+
+Add a production dependency:
+
+```bash
+poetry add <package>
+```
+
+Add a development dependency:
+
+```bash
+poetry add --group dev <package>
+```
+
+Remove a production dependency:
+
+```bash
+poetry remove <package>
+```
+
+Update dependencies:
+
+```bash
+poetry update
+```
+
+### Exporting requirements.txt
+
+The Dockerfile installs Python packages from `requirements.txt`.
+
+**This file is generated from `poetry.lock` and must not be edited manually.**
+
+Install the Poetry export plugin:
+
+```bash
+poetry self add poetry-plugin-export
+```
+
+After changing dependencies, regenerate `requirements.txt`:
+
+```bash
+poetry export --only main --without-hashes -o requirements.txt
+```
+
+Only production dependencies are exported. Development dependencies are excluded.
+
+Rebuild the Docker image after updating `requirements.txt`.
+
+Always commit `pyproject.toml`, `poetry.lock`, and `requirements.txt` together.
