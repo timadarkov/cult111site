@@ -37,7 +37,9 @@ class ImageSettingsTests(unittest.TestCase):
         self.engine = create_engine(
             "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool,
         )
-        database.Base.metadata.create_all(self.engine)
+        print("TEST BASE TABLES:", list(database.Base.metadata.tables.keys()))
+        print("BRAND BASE MATCH:", Brands.__table__.metadata is database.Base.metadata)
+        Brands.__table__.metadata.create_all(self.engine)
         with Session(self.engine) as db:
             db.add_all([Brands(id=1, name="Brand"), Category(id=1, name="Category")])
             db.add_all([
@@ -144,7 +146,8 @@ class ImageSettingsTests(unittest.TestCase):
         before = self.state()
         with patch.object(image_copy_storage, "copy_image_file") as copy_file:
             for product_id, image_id, status in [(1, 1, 409), (2, 4, 404), (2, 999, 404), (999, 1, 404), (2, True, 422)]:
-                response = self.client.post(f"/api/v1/admin/products/{product_id}/images/copy", json={"image_id": image_id})
+                response = self.client.post(
+                    f"/api/v1/admin/products/{product_id}/images/copy", json={"image_id": image_id})
                 self.assertEqual(response.status_code, status)
             copy_file.assert_not_called()
         self.assertEqual(self.state(), before)
