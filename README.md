@@ -222,3 +222,82 @@ Only production dependencies are exported. Development dependencies are excluded
 Rebuild the Docker image after updating `requirements.txt`.
 
 Always commit `pyproject.toml`, `poetry.lock`, and `requirements.txt` together.
+
+## Testing
+
+The project uses pytest for automated testing.
+
+### Requirements
+
+- Python 3.14
+- Poetry
+- Docker and Docker Compose
+- PostgreSQL 17
+
+### Test database
+
+Tests use a separate PostgreSQL database named `cult111_test`.
+
+The database runs inside the existing development PostgreSQL container.
+
+Start PostgreSQL:
+
+```bash
+docker compose \
+  --env-file .env \
+  -f deploy/docker-compose.yml \
+  -f deploy/docker-compose.override.yml \
+  up -d postgres
+```
+
+Create the test database if it does not exist:
+
+```bash
+docker compose \
+  --env-file .env \
+  -f deploy/docker-compose.yml \
+  -f deploy/docker-compose.override.yml \
+  exec postgres sh -c \
+  'createdb -U "$POSTGRES_USER" cult111_test'
+```
+
+Add the following variables to `.env`:
+
+```dotenv
+TEST_DB_HOST=127.0.0.1
+TEST_DB_PORT=5433
+TEST_DB_NAME=cult111_test
+```
+
+The PostgreSQL container must expose port `5433` on localhost.
+
+### Running tests
+
+Install dependencies:
+
+```bash
+poetry install
+```
+
+Run all tests:
+
+```bash
+poetry run pytest
+```
+
+Run the product integration test:
+
+```bash
+poetry run pytest tests/test_products.py -v
+```
+
+### Database isolation
+
+- Tests never intentionally use the application's production database.
+- The database name must be `cult111_test`.
+- Each test receives its own SQLAlchemy session.
+- Database changes are rolled back after each test.
+- Test tables are created before testing and removed afterward.
+- The test runner refuses to use a database containing existing tables.
+
+Do not use production database credentials or production PostgreSQL servers for tests.
