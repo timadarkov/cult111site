@@ -1,78 +1,32 @@
 from decimal import Decimal
-
-from app.models.brand import Brands
-from app.models.category import Category
-from app.models.product import Products
 from app.models.image import Images
 
 
-def create_brand(db_session, name, is_visible=True):
+def test_hidden_product_not_in_list(
+    client,
+    brand_factory,
+    category_factory,
+    product_factory,
+):
 
-    brand = Brands(name=name, is_visible=is_visible)
+    brand = brand_factory("Nike")
 
-    db_session.add(brand)
-    db_session.flush()
+    category = category_factory("t-shirt")
 
-    return brand
-
-
-def create_category(db_session, name, is_visible=True):
-
-    category = Category(name=name, is_visible=is_visible)
-
-    db_session.add(category)
-    db_session.flush()
-
-    return category
-
-
-def create_product(db_session, name, price, category_id, brand_id, is_visible=True):
-
-    product = Products(
-        name=name,
-        price=price,
-        description="Test product",
-        category_id=category_id,
-        brand_id=brand_id,
-        is_visible=is_visible
-    )
-
-    db_session.add(product)
-    db_session.flush()
-
-    return product
-
-
-def test_hidden_product_not_in_list(client, db_session):
-
-    testbrand = create_brand(
-        db_session,
-        name="Test",
-        is_visible=True,
-    )
-
-    testcategory = create_category(
-        db_session,
-        name="Test",
+    producttest = product_factory(
+        name="Test t-shirt",
+        price=100,
+        category_id=category.id,
+        brand_id=brand.id,
         is_visible=True
     )
 
-    not_visible_product = create_product(
-        db_session,
-        name="Test t-shirt",
+    producttest2 = product_factory(
+        name="Test t-shirt2",
         price=100,
-        category_id=testcategory.id,
-        brand_id=testbrand.id,
+        category_id=category.id,
+        brand_id=brand.id,
         is_visible=False
-    )
-
-    visible_product = create_product(
-        db_session,
-        name="Test t-shirt",
-        price=100,
-        category_id=testcategory.id,
-        brand_id=testbrand.id,
-        is_visible=True
     )
 
     response = client.get("/api/v1/products")
@@ -81,34 +35,30 @@ def test_hidden_product_not_in_list(client, db_session):
     returned_ids = [item["id"] for item in products]
 
     assert response.status_code == 200
-    assert visible_product.id in returned_ids
-    assert not_visible_product.id not in returned_ids
+    assert producttest.id in returned_ids
+    assert producttest2.id not in returned_ids
 
 
-def test_hidden_product_not_accessible_by_id(client, db_session):
+def test_hidden_product_not_accessible_by_id(
+    client,
+    brand_factory,
+    category_factory,
+    product_factory,
+):
 
-    testbrand = create_brand(
-        db_session,
-        name="Test",
-        is_visible=True,
-    )
+    brand = brand_factory("Nike")
 
-    testcategory = create_category(
-        db_session,
-        name="Test",
-        is_visible=True
-    )
+    category = category_factory("t-shirt")
 
-    not_visible_product = create_product(
-        db_session,
+    producttest = product_factory(
         name="Test t-shirt",
         price=100,
-        category_id=testcategory.id,
-        brand_id=testbrand.id,
+        category_id=category.id,
+        brand_id=brand.id,
         is_visible=False
     )
 
-    response = client.get(f"/api/v1/products/{not_visible_product.id}")
+    response = client.get(f"/api/v1/products/{producttest.id}")
     data = response.json()
 
     assert response.status_code == 404
@@ -124,37 +74,34 @@ def test_get_nonexistent_product(client):
     assert data["detail"] == "Product not found"
 
 
-def test_get_product_with_images(client, db_session):
+def test_get_product_with_images(
+    db_session,
+    client,
+    brand_factory,
+    category_factory,
+    product_factory,
+):
 
-    testbrand = create_brand(
-        db_session,
-        name="Test",
-        is_visible=True,
-    )
+    brand = brand_factory("Nike")
 
-    testcategory = create_category(
-        db_session,
-        name="Test",
-        is_visible=True
-    )
+    category = category_factory("t-shirt")
 
-    product_test = create_product(
-        db_session,
+    producttest = product_factory(
         name="Test t-shirt",
         price=100,
-        category_id=testcategory.id,
-        brand_id=testbrand.id,
+        category_id=category.id,
+        brand_id=brand.id,
         is_visible=True
     )
 
     test_image = Images(
-        product_id=product_test.id,
+        product_id=producttest.id,
         key="products/test-image-1.jpg",
         position=0,
         is_main=True
     )
     test_image2 = Images(
-        product_id=product_test.id,
+        product_id=producttest.id,
         key="products/test-image-2.jpg",
         position=1,
         is_main=False
@@ -163,7 +110,7 @@ def test_get_product_with_images(client, db_session):
     db_session.add_all([test_image, test_image2])
     db_session.flush()
 
-    response = client.get(f"/api/v1/products/{product_test.id}")
+    response = client.get(f"/api/v1/products/{producttest.id}")
     product = response.json()
     images = product["images"]
     returned_keys = [image["key"] for image in images]
@@ -173,8 +120,8 @@ def test_get_product_with_images(client, db_session):
     second_image = images_by_key[test_image2.key]
 
     assert response.status_code == 200
-    assert product["id"] == product_test.id
-    assert product["name"] == product_test.name
+    assert product["id"] == producttest.id
+    assert product["name"] == producttest.name
     assert len(images) == 2
     assert test_image.key in returned_keys
     assert test_image2.key in returned_keys
@@ -182,293 +129,231 @@ def test_get_product_with_images(client, db_session):
     assert first_image["id"] == test_image.id
     assert first_image["position"] == test_image.position
     assert first_image["is_main"] == test_image.is_main
-    assert first_image["product_id"] == product_test.id
+    assert first_image["product_id"] == producttest.id
     assert first_image["url"].endswith(test_image.key)
 
     assert second_image["id"] == test_image2.id
     assert second_image["position"] == test_image2.position
     assert second_image["is_main"] == test_image2.is_main
-    assert second_image["product_id"] == product_test.id
+    assert second_image["product_id"] == producttest.id
     assert second_image["url"].endswith(test_image2.key)
 
 
-def test_filter_products_by_category(client, db_session):
+def test_filter_products_by_category(
+    client,
+    brand_factory,
+    category_factory,
+    product_factory,
+):
 
-    testbrand = create_brand(
-        db_session,
-        name="Test",
-        is_visible=True,
-    )
+    brand = brand_factory("Nike")
 
-    category1 = create_category(
-        db_session,
-        name="Clothes",
-        is_visible=True
-    )
+    category = category_factory("t-shirt")
 
-    category2 = create_category(
-        db_session,
-        name="Shoes",
-        is_visible=True
-    )
+    category2 = category_factory("sshirt")
 
-    product1 = create_product(
-        db_session,
+    producttest = product_factory(
         name="Test t-shirt",
         price=100,
-        category_id=category1.id,
-        brand_id=testbrand.id,
+        category_id=category.id,
+        brand_id=brand.id,
         is_visible=True
     )
 
-    product2 = create_product(
-        db_session,
+    producttest2 = product_factory(
         name="Test t-shirt",
         price=100,
-        category_id=category2.id,
-        brand_id=testbrand.id,
+        category_id=category.id,
+        brand_id=brand.id,
         is_visible=True
     )
-
-    product3 = create_product(
-        db_session,
+    producttest3 = product_factory(
         name="Test t-shirt",
         price=100,
         category_id=category2.id,
-        brand_id=testbrand.id,
+        brand_id=brand.id,
         is_visible=True
     )
 
     response = client.get(
-        f"/api/v1/products?category_id={category1.id}"
+        f"/api/v1/products?category_id={category.id}"
     )
 
     products = response.json()
     returned_ids = [item["id"] for item in products]
 
     assert response.status_code == 200
-    assert product1.id in returned_ids
-    assert product2.id not in returned_ids
-    assert product3.id not in returned_ids
+    assert producttest.id in returned_ids
+    assert producttest2.id in returned_ids
+    assert producttest3.id not in returned_ids
 
 
-def test_filter_products_by_brand(client, db_session):
+def test_filter_products_by_brand(
+    client,
+    brand_factory,
+    category_factory,
+    product_factory,
+):
 
-    brand1 = create_brand(
-        db_session,
-        name="nide",
-        is_visible=True,
-    )
+    brand = brand_factory("Nike")
 
-    brand2 = create_brand(
-        db_session,
-        name="aabibas",
-        is_visible=True,
-    )
+    brand1 = brand_factory("Nikes")
 
-    category1 = create_category(
-        db_session,
-        name="Clothes",
-        is_visible=True
-    )
+    category = category_factory("t-shirt")
 
-    category2 = create_category(
-        db_session,
-        name="Shoes",
-        is_visible=True
-    )
-
-    product1 = create_product(
-        db_session,
+    producttest = product_factory(
         name="Test t-shirt",
         price=100,
-        category_id=category1.id,
+        category_id=category.id,
+        brand_id=brand.id,
+        is_visible=True
+    )
+
+    producttest2 = product_factory(
+        name="Test t-shirt",
+        price=100,
+        category_id=category.id,
+        brand_id=brand.id,
+        is_visible=True
+    )
+    producttest3 = product_factory(
+        name="Test t-shirt",
+        price=100,
+        category_id=category.id,
         brand_id=brand1.id,
-        is_visible=True
-    )
-
-    product2 = create_product(
-        db_session,
-        name="Test t-shirt",
-        price=100,
-        category_id=category2.id,
-        brand_id=brand1.id,
-        is_visible=True
-    )
-
-    product3 = create_product(
-        db_session,
-        name="Test t-shirt",
-        price=100,
-        category_id=category2.id,
-        brand_id=brand2.id,
         is_visible=True
     )
 
     response = client.get(
-        f"/api/v1/products?brand_id={brand1.id}"
+        f"/api/v1/products?brand_id={brand.id}"
     )
 
     products = response.json()
     returned_ids = [item["id"] for item in products]
 
     assert response.status_code == 200
-    assert product1.id in returned_ids
-    assert product2.id in returned_ids
-    assert product3.id not in returned_ids
+    assert producttest.id in returned_ids
+    assert producttest2.id in returned_ids
+    assert producttest3.id not in returned_ids
 
 
-def test_filter_products_by_brand_and_category(client, db_session):
+def test_filter_products_by_brand_and_category(
+    client,
+    brand_factory,
+    category_factory,
+    product_factory,
+):
 
-    brand1 = create_brand(
-        db_session,
-        name="nide",
-        is_visible=True,
-    )
+    brand = brand_factory("Nike")
 
-    brand2 = create_brand(
-        db_session,
-        name="aabibas",
-        is_visible=True,
-    )
+    brand1 = brand_factory("Nikes")
 
-    category1 = create_category(
-        db_session,
-        name="Clothes",
+    category = category_factory("t-shirt")
+
+    category1 = category_factory("sshirt")
+
+    producttest = product_factory(
+        name="Test t-shirt",
+        price=100,
+        category_id=category.id,
+        brand_id=brand.id,
         is_visible=True
     )
 
-    category2 = create_category(
-        db_session,
-        name="Shoes",
-        is_visible=True
-    )
-
-    product1 = create_product(
-        db_session,
+    producttest2 = product_factory(
         name="Test t-shirt",
         price=100,
         category_id=category1.id,
-        brand_id=brand1.id,
+        brand_id=brand.id,
         is_visible=True
     )
-
-    product2 = create_product(
-        db_session,
+    producttest3 = product_factory(
         name="Test t-shirt",
         price=100,
-        category_id=category2.id,
+        category_id=category.id,
         brand_id=brand1.id,
-        is_visible=True
-    )
-
-    product3 = create_product(
-        db_session,
-        name="Test t-shirt",
-        price=100,
-        category_id=category1.id,
-        brand_id=brand2.id,
         is_visible=True
     )
 
     response = client.get(
-        f"/api/v1/products?category_id={category1.id}&brand_id={brand1.id}"
+        f"/api/v1/products?category_id={category.id}&brand_id={brand.id}"
     )
 
     products = response.json()
     returned_ids = [item["id"] for item in products]
 
     assert response.status_code == 200
-    assert product1.id in returned_ids
-    assert product2.id not in returned_ids
-    assert product3.id not in returned_ids
+    assert producttest.id in returned_ids
+    assert producttest2.id not in returned_ids
+    assert producttest3.id not in returned_ids
 
 
-def test_product_of_hidden_brand(client, db_session):
+def test_product_of_hidden_brand(
+    client,
+    brand_factory,
+    category_factory,
+    product_factory,
+):
 
-    brand1 = create_brand(
-        db_session,
-        name="nide",
-        is_visible=False,
-    )
+    brand = brand_factory("Nike", is_visible=False)
 
-    category1 = create_category(
-        db_session,
-        name="Clothes",
-        is_visible=True
-    )
+    category = category_factory("t-shirt")
 
-    product1 = create_product(
-        db_session,
+    producttest = product_factory(
         name="Test t-shirt",
         price=100,
-        category_id=category1.id,
-        brand_id=brand1.id,
+        category_id=category.id,
+        brand_id=brand.id,
         is_visible=True
     )
 
     response = client.get(
-        f"/api/v1/products?brand_id={brand1.id}"
+        f"/api/v1/products?brand_id={brand.id}"
     )
 
     products = response.json()
     returned_ids = [item["id"] for item in products]
 
     assert response.status_code == 200
-    assert product1.id in returned_ids
+    assert producttest.id in returned_ids
 
 
-def test_product_of_hidden_category(client, db_session):
+def test_product_of_hidden_category(
+    client,
+    brand_factory,
+    category_factory,
+    product_factory,
+):
 
-    brand1 = create_brand(
-        db_session,
-        name="nide",
-        is_visible=True,
-    )
+    brand = brand_factory("Nike")
 
-    category1 = create_category(
-        db_session,
-        name="Clothes",
-        is_visible=False
-    )
+    category = category_factory("t-shirt", is_visible=False)
 
-    product1 = create_product(
-        db_session,
+    producttest = product_factory(
         name="Test t-shirt",
         price=100,
-        category_id=category1.id,
-        brand_id=brand1.id,
+        category_id=category.id,
+        brand_id=brand.id,
         is_visible=True
     )
-
     response = client.get(
-        f"/api/v1/products?category_id={category1.id}"
+        f"/api/v1/products?category_id={category.id}"
     )
 
     products = response.json()
     returned_ids = [item["id"] for item in products]
 
     assert response.status_code == 200
-    assert product1.id in returned_ids
+    assert producttest.id in returned_ids
 
 
-def test_get_visible_brands(client, db_session):
+def test_get_visible_brands(client, brand_factory):
 
-    brand1 = create_brand(
-        db_session,
-        name="nidel",
-        is_visible=True,
-    )
-    brand2 = create_brand(
-        db_session,
-        name="nid",
-        is_visible=True,
-    )
-    brand3 = create_brand(
-        db_session,
-        name="ni",
-        is_visible=False,
-    )
+    brand1 = brand_factory("Nike")
+
+    brand2 = brand_factory("Puma")
+
+    brand3 = brand_factory("Nike", is_visible=False)
 
     response = client.get(
         "/api/v1/brands"
@@ -483,23 +368,13 @@ def test_get_visible_brands(client, db_session):
     assert brand3.id not in returned_ids
 
 
-def test_get_visible_categories(client, db_session):
+def test_get_visible_categories(client, category_factory):
 
-    category1 = create_category(
-        db_session,
-        name="Clothes",
-        is_visible=False
-    )
-    category2 = create_category(
-        db_session,
-        name="Clothes1",
-        is_visible=False
-    )
-    category3 = create_category(
-        db_session,
-        name="Clothes2",
-        is_visible=True
-    )
+    category1 = category_factory("t-shirt",)
+
+    category2 = category_factory("t-shirt",)
+
+    category3 = category_factory("t-shirt", is_visible=False)
 
     response = client.get(
         "/api/v1/categories"
@@ -509,64 +384,56 @@ def test_get_visible_categories(client, db_session):
     returned_ids = [item["id"] for item in categories]
 
     assert response.status_code == 200
-    assert category1.id not in returned_ids
-    assert category2.id not in returned_ids
-    assert category3.id in returned_ids
+    assert category1.id in returned_ids
+    assert category2.id in returned_ids
+    assert category3.id not in returned_ids
 
 
-def test_get_existing_product(client, db_session):
+def test_get_existing_product(
+    client,
+    brand_factory,
+    category_factory,
+    product_factory,
+):
 
-    testbrand = create_brand(
-        db_session,
-        name="Test",
-        is_visible=True,
-    )
+    brand = brand_factory("Nike")
 
-    testcategory = create_category(
-        db_session,
-        name="Test",
-        is_visible=True
-    )
+    category = category_factory("t-shirt")
 
-    product_test = create_product(
-        db_session,
+    producttest = product_factory(
         name="Test t-shirt",
         price=100,
-        category_id=testcategory.id,
-        brand_id=testbrand.id,
-        is_visible=True
+        category_id=category.id,
+        brand_id=brand.id,
     )
-
-    response = client.get(f"/api/v1/products/{product_test.id}")
+    response = client.get(f"/api/v1/products/{producttest.id}")
     product = response.json()
 
     assert response.status_code == 200
-    assert product["id"] == product_test.id
-    assert product["name"] == product_test.name
-    assert product["price"] == product_test.price
+    assert product["id"] == producttest.id
+    assert product["name"] == producttest.name
+    assert product["price"] == producttest.price
 
 
-def test_get_products(client, db_session):
-    # Arrange — подготовка
-    brand = Brands(name="Test Brand")
-    category = Category(name="Test Category")
+def test_get_products(
+    client,
+    brand_factory,
+    category_factory,
+    product_factory,
+):
 
-    db_session.add_all([brand, category])
-    db_session.flush()
+    brand = brand_factory("Nike")
 
-    product = Products(
-        name="Test T-Shirt",
-        price=Decimal("1500.00"),
-        description="Test product",
+    category = category_factory("t-shirt")
+
+    producttest = product_factory(
+        name="Test t-shirt",
+        price=100,
         category_id=category.id,
         brand_id=brand.id,
-        is_visible=True,
     )
 
-    db_session.add(product)
-    db_session.flush()
-
-    product_id = product.id
+    product_id = producttest.id
 
     # Act — действие
     response = client.get("/api/v1/products")
@@ -578,6 +445,6 @@ def test_get_products(client, db_session):
 
     assert any(
         item["id"] == product_id
-        and item["name"] == "Test T-Shirt"
+        and item["name"] == "Test t-shirt"
         for item in products
     )
