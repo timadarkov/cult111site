@@ -8,7 +8,10 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import URL
 
 from database import Base
-import app.models
+from app.models.brand import Brands
+from app.models.category import Category
+from app.models.product import Products
+from app.models.image import Images
 
 
 class TestDatabaseSettings(BaseSettings):
@@ -120,3 +123,55 @@ def client(db_session):
             yield test_client
     finally:
         app.dependency_overrides.pop(get_db, None)
+
+
+@pytest.fixture
+def brand_factory(db_session):
+
+    def create_brand(name, is_visible: bool = True):
+
+        brand = Brands(name=name, is_visible=is_visible)
+
+        db_session.add(brand)
+        db_session.flush()
+
+        return brand
+
+    return create_brand
+
+
+@pytest.fixture
+def category_factory(db_session):
+
+    def create_category(name, is_visible: bool = True):
+
+        category = Category(name=name, is_visible=is_visible)
+
+        db_session.add(category)
+        db_session.flush()
+
+        return category
+
+    return create_category
+
+
+@pytest.fixture
+def product_factory(db_session):
+
+    def create_product(name, price, category_id, brand_id, is_visible: bool = True):
+
+        product = Products(
+            name=name,
+            price=price,
+            description="Test product",
+            category_id=category_id,
+            brand_id=brand_id,
+            is_visible=is_visible
+        )
+
+        db_session.add(product)
+        db_session.flush()
+
+        return product
+
+    return create_product
