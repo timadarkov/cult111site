@@ -69,7 +69,7 @@ def refresh(db: Session, refresh_token: str) -> dict[str, str]:
     if not user.is_active:
         raise HTTPException(
             status_code=401,
-            detail="Invalid username or password",
+            detail="Invalid or expired refresh token",
         )
 
     return {
