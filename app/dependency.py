@@ -37,7 +37,7 @@ def get_current_user(
             expected_type="access",
         )
         user_id = int(payload["sub"])
-    except (jwt.InvalidTokenError, ValueError, TypeError):
+    except (jwt.InvalidTokenError, ValueError, TypeError, KeyError):
         raise HTTPException(
             status_code=401,
             detail="Invalid or expired access token",
@@ -46,10 +46,10 @@ def get_current_user(
 
     user = db.get(User, user_id)
 
-    if not user:
+    if not user or not user.is_active:
         raise HTTPException(
             status_code=401,
-            detail="User not found",
+            detail="User not found or inactive",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

@@ -32,3 +32,22 @@ def get_user_by_username(db: Session, username: str) -> User | None:
 
 def get_user_by_id(db: Session, id: int) -> User | None:
     return (db.query(User).filter(User.id == id).first())
+
+
+def user_deactive(
+    db: Session,
+    user_id: int,
+    is_active: bool,
+) -> User | None:
+
+    user = db.get(User, user_id)
+
+    if not user:
+        return None
+
+    user.is_active = is_active
+
+    db.commit()
+    db.refresh(user)
+
+    return user

@@ -12,6 +12,8 @@ from app.models.brand import Brands
 from app.models.category import Category
 from app.models.product import Products
 from app.models.image import Images
+from app.models.users import User
+from app.auth.utils import hash_password
 
 
 class TestDatabaseSettings(BaseSettings):
@@ -175,3 +177,28 @@ def product_factory(db_session):
         return product
 
     return create_product
+
+
+@pytest.fixture
+def user_factory(db_session):
+
+    def create_user(
+        username,
+        password="Test12345!",
+        is_active=True,
+        is_admin=False,
+    ):
+        user = User(
+            username=username,
+            nickname=username,
+            password_hash=hash_password(password),
+            is_active=is_active,
+            is_admin=is_admin,
+        )
+
+        db_session.add(user)
+        db_session.flush()
+
+        return user
+
+    return create_user

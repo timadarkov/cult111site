@@ -26,8 +26,8 @@ def login(db: Session, username: str, password: str) -> dict[str, str]:
 
     if not user.is_active:
         raise HTTPException(
-            status_code=403,
-            detail="User is blocked",
+            status_code=401,
+            detail="Invalid username or password",
         )
 
     return {
@@ -52,7 +52,7 @@ def refresh(db: Session, refresh_token: str) -> dict[str, str]:
             expected_type="refresh",
         )
         user_id = int(payload["sub"])
-    except (jwt.InvalidTokenError, ValueError, TypeError):
+    except (jwt.InvalidTokenError, ValueError, TypeError, KeyError):
         raise HTTPException(
             status_code=401,
             detail="Invalid or expired refresh token",
@@ -68,8 +68,8 @@ def refresh(db: Session, refresh_token: str) -> dict[str, str]:
 
     if not user.is_active:
         raise HTTPException(
-            status_code=403,
-            detail="User is blocked",
+            status_code=401,
+            detail="Invalid username or password",
         )
 
     return {
@@ -87,5 +87,5 @@ def refresh(db: Session, refresh_token: str) -> dict[str, str]:
     }
 
 
-def get_current_user(db: Session, current_user: int) -> User:
+def get_current_user(db: Session, current_user: User) -> User:
     return users_storage.get_user_by_id(db, current_user.id)

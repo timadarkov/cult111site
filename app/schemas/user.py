@@ -30,3 +30,8 @@ class UserResponseAdmin(UserResponse):
     is_admin: bool
     created_at: datetime
     updated_at: datetime
+
+
+class UserActive(BaseModel):
+
+    is_active: bool

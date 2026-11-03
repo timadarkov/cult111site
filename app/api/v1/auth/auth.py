@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.dependency import get_db, get_current_user
 from app.schemas import auth, user
 from app.services import auth_services
-
+from app.models.users import User
 from fastapi import Request
 
 from app.core.rate_limit import limiter
@@ -38,7 +38,7 @@ def refresh(
 
 
 @router.get("/me", response_model=user.UserResponse)
-def me(db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
+def me(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return auth_services.get_current_user(
         db=db,
         current_user=current_user,

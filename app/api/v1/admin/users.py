@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from app.dependency import get_db
 from app.services import users_services
 from app.schemas import user
-
+from app.dependency import get_current_admin
+from app.models.users import User
 
 router = APIRouter(
     prefix="/users",
@@ -34,3 +35,8 @@ def get_users(
         is_active=is_active,
         is_verified=is_verified,
     )
+
+
+@router.patch("/{user_id}/activity", response_model=user.UserResponse, status_code=200)
+def update_activity_user(data: user.UserActive, user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_admin)):
+    return users_services.user_deactive(db, user_id, data.is_active, current_user.id)

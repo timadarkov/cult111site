@@ -49,3 +49,26 @@ def get_users(
 
 def get_user_by_username(db: Session, username: str):
     return users_storage.get_user_by_username(db, username)
+
+
+def user_deactive(
+    db: Session,
+    user_id: int,
+    is_active: bool,
+    current_user_id: int,
+) -> User:
+    if current_user_id == user_id and not is_active:
+        raise HTTPException(
+            status_code=403,
+            detail="You cannot deactivate yourself",
+        )
+
+    user = users_storage.user_deactive(db, user_id, is_active)
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    return user
