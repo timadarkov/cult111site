@@ -14,6 +14,8 @@ from app.models.product import Products
 from app.models.image import Images
 from app.models.users import User
 from app.auth.utils import hash_password
+from app.auth.utils import create_token
+from app.core.config import settings
 
 
 class TestDatabaseSettings(BaseSettings):
@@ -202,3 +204,63 @@ def user_factory(db_session):
         return user
 
     return create_user
+
+
+@pytest.fixture
+def regular_user(user_factory):
+    return user_factory(
+        username="regular_user",
+        is_active=True,
+        is_admin=False,
+    )
+
+
+@pytest.fixture
+def admin_user(user_factory):
+    return user_factory(
+        username="admin_user",
+        is_active=True,
+        is_admin=True,
+    )
+
+
+@pytest.fixture
+def inactive_user(user_factory):
+    return user_factory(
+        username="inactive_user",
+        is_active=False,
+        is_admin=False,
+    )
+
+
+@pytest.fixture
+def regular_user_headers(regular_user):
+    token = create_token(
+        user_id=regular_user.id,
+        token_type="access",
+        token_expire_minutes=settings.auth_jwt.access_token_expire_minutes,
+    )
+
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def admin_headers(admin_user):
+    token = create_token(
+        user_id=admin_user.id,
+        token_type="access",
+        token_expire_minutes=settings.auth_jwt.access_token_expire_minutes,
+    )
+
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def inactive_user_headers(inactive_user):
+    token = create_token(
+        user_id=inactive_user.id,
+        token_type="access",
+        token_expire_minutes=settings.auth_jwt.access_token_expire_minutes,
+    )
+
+    return {"Authorization": f"Bearer {token}"}
