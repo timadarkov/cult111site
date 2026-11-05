@@ -57,7 +57,7 @@ def get_current_user(
 
 
 def get_current_admin(
-        user: User = Depends(get_current_user),
+    user: User = Depends(get_current_user),
 ) -> User:
     if not user.is_admin:
         raise HTTPException(
