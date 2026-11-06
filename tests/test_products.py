@@ -197,7 +197,7 @@ def test_filter_products_by_brand(
 
     brand = brand_factory("Nike")
 
-    brand1 = brand_factory("Nikes")
+    brand1 = brand_factory("Puma")
 
     category = category_factory("t-shirt")
 
@@ -246,7 +246,7 @@ def test_filter_products_by_brand_and_category(
 
     brand = brand_factory("Nike")
 
-    brand1 = brand_factory("Nikes")
+    brand1 = brand_factory("Puma")
 
     category = category_factory("t-shirt")
 
@@ -353,7 +353,7 @@ def test_get_visible_brands(client, brand_factory):
 
     brand2 = brand_factory("Puma")
 
-    brand3 = brand_factory("Nike", is_visible=False)
+    brand3 = brand_factory("Adidas", is_visible=False)
 
     response = client.get(
         "/api/v1/brands"
@@ -372,9 +372,9 @@ def test_get_visible_categories(client, category_factory):
 
     category1 = category_factory("t-shirt",)
 
-    category2 = category_factory("t-shirt",)
+    category2 = category_factory("hoodie",)
 
-    category3 = category_factory("t-shirt", is_visible=False)
+    category3 = category_factory("sneakers", is_visible=False)
 
     response = client.get(
         "/api/v1/categories"

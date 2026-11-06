@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
 from app.schemas.image import ImageSchemaOut
+from pydantic import Field
 
 
 class ProductSchemaOut(BaseModel):
@@ -17,7 +18,7 @@ class ProductSchemaOut(BaseModel):
 
 class ProductCreate(BaseModel):
     name: str
-    price: float
+    price: float = Field(gt=0)
     description: str
     category_id: int
     brand_id: int
@@ -43,7 +44,7 @@ class ProductVisibilityUpdate(BaseModel):
 class ProductEdit(BaseModel):
     id: int | None = None
     name: str | None = None
-    price: float | None = None
+    price: float | None = Field(default=None, gt=0)
     description: str | None = None
     category_id: int | None = None
     brand_id: int | None = None

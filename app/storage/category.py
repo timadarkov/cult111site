@@ -10,10 +10,9 @@ def get_categories(db: Session) -> list[Category]:
 def create_category(db: Session, data: category.CategoryCreate):
     category = Category(
         name=data.name,
+        is_visible=data.is_visible,
     )
     db.add(category)
-    db.commit()
-    db.refresh(category)
     return category
 
 
@@ -61,5 +60,17 @@ def edit_category(db: Session, category_id: int, data: category.CategoryEdit) ->
 
     db.commit()
     db.refresh(category)
+
+    return category
+
+
+def delete_category(db: Session, category_id: int):
+    category = db.get(Category, category_id)
+
+    if category is None:
+        return None
+
+    db.delete(category)
+    db.commit()
 
     return category
