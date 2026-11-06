@@ -6,5 +6,5 @@ from database import Base
 class Brands(Base):
     __tablename__ = "brands"
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(unique=True)
     is_visible: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=true())

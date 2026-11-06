@@ -48,3 +48,15 @@ def edit_product(db: Session, product_id: int, data: product.ProductEdit):
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
+
+
+def delete_product(db: Session, product_id: int):
+    product = product_storage.delete_product(db, product_id)
+
+    if product is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Product not found",
+        )
+
+    return product
