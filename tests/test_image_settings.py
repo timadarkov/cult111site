@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy.pool import StaticPool
+from app.schemas import image as image_schema
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -120,7 +121,10 @@ class ImageSettingsTests(unittest.TestCase):
             self.assertEqual(self.request("main", data).status_code, 422)
 
     def test_copy_creates_independent_file_at_end(self):
-        with patch.object(image_copy_storage, "copy_image_file") as copy_file:
+        with (
+            patch.object(image_schema, "settings", config.settings),
+            patch.object(image_copy_storage, "copy_image_file") as copy_file,
+        ):
             response = self.client.post("/api/v1/admin/products/2/images/copy", json={"image_id": 1})
         self.assertEqual(response.status_code, 201)
         result = response.json()

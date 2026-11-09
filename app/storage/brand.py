@@ -23,11 +23,9 @@ def get_brands_for_admin(
 def create_brand(db: Session, data: BrandCreate):
     brand = Brands(
         name=data.name,
-        is_visible=data.is_visible
+        is_visible=data.is_visible,
     )
     db.add(brand)
-    db.commit()
-    db.refresh(brand)
     return brand
 
 
@@ -66,5 +64,17 @@ def edit_brand(
 
     db.commit()
     db.refresh(brand)
+
+    return brand
+
+
+def delete_brand(db: Session, brand_id: int):
+    brand = db.get(Brands, brand_id)
+
+    if brand is None:
+        return None
+
+    db.delete(brand)
+    db.commit()
 
     return brand

@@ -63,7 +63,7 @@ def edit_product(
     )
 
 
-@router.delete("/products/{product_id}/images/{image_id}", status_code=204)
+@router.delete("/{product_id}/images/{image_id}", status_code=204)
 def delete_image(
     product_id: int,
     image_id: int,
@@ -122,3 +122,11 @@ def copy_product_image(
         product_id=product_id,
         data=data,
     )
+
+
+@router.delete("/{product_id}", status_code=204)
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+):
+    product_services.delete_product(db, product_id)

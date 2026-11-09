@@ -12,11 +12,11 @@ class Products(Base):
     price: Mapped[Decimal]
     description: Mapped[str]
     category_id: Mapped[int] = mapped_column(
-        ForeignKey("categories.id", ondelete="CASCADE")
+        ForeignKey("categories.id", ondelete="RESTRICT")
     )
 
     brand_id: Mapped[int] = mapped_column(
-        ForeignKey("brands.id", ondelete="CASCADE")
+        ForeignKey("brands.id", ondelete="RESTRICT")
     )
     images = relationship(
         "Images",

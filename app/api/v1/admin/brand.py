@@ -54,3 +54,11 @@ def update_brand_visibility(
         brand_id=brand_id,
         data=data,
     )
+
+
+@router.delete("/{brand_id}", status_code=204)
+def delete_brand(
+    brand_id: int,
+    db: Session = Depends(get_db),
+):
+    brand_services.delete_brand(db, brand_id)

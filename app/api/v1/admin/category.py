@@ -52,3 +52,11 @@ def update_category_visibility(
         category_id=category_id,
         data=data,
     )
+
+
+@router.delete("/{category_id}", status_code=204)
+def delete_category(
+    category_id: int,
+    db: Session = Depends(get_db),
+):
+    category_services.delete_category(db, category_id)

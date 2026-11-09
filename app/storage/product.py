@@ -89,3 +89,17 @@ def edit_product(db: Session, product_id: int, data: product.ProductEdit) -> Pro
     db.refresh(product)
 
     return product
+
+
+def delete_product(db: Session, product_id: int):
+    product = db.get(Products, product_id)
+
+    if product is None:
+        return None
+
+    product.is_visible = False
+
+    db.commit()
+    db.refresh(product)
+
+    return product
