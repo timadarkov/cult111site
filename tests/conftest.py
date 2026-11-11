@@ -1,21 +1,31 @@
-import pytest
-from sqlalchemy.orm import Session
+import os
 from pathlib import Path
-from sqlalchemy import inspect
+from unittest.mock import Mock
+
+import pytest
 from fastapi.testclient import TestClient
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import URL
+from sqlalchemy.orm import Session
+
+# fmt: off
+os.environ["R2_ENDPOINT"] = "https://r2.test"
+os.environ["R2_ACCESS_KEY_ID"] = "test-access-key"
+os.environ["R2_SECRET_ACCESS_KEY"] = "test-secret-key"
+os.environ["R2_BUCKET"] = "test-bucket"
+os.environ["R2_PUBLIC_URL"] = "https://cdn.test"
 
 from database import Base
+from app.auth.utils import create_token, hash_password
+from app.core.config import settings
 from app.models.brand import Brands
 from app.models.category import Category
-from app.models.product import Products
 from app.models.image import Images
+from app.models.product import Products
 from app.models.users import User
-from app.auth.utils import hash_password
-from app.auth.utils import create_token
-from app.core.config import settings
+from app.storage import r2
+# fmt: on
 
 
 class TestDatabaseSettings(BaseSettings):
@@ -264,3 +274,28 @@ def inactive_user_headers(inactive_user):
     )
 
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(autouse=True)
+def r2_mock(monkeypatch):
+    storage = Mock(
+        spec=[
+            "generate_presigned_url",
+            "head_object",
+            "copy_object",
+            "delete_object",
+        ]
+    )
+
+    storage.generate_presigned_url.return_value = (
+        "https://storage.test/upload"
+    )
+
+    storage.head_object.return_value = {
+        "ContentType": "image/png",
+        "ContentLength": 100,
+    }
+
+    monkeypatch.setattr(r2, "s3", storage)
+
+    return storage
