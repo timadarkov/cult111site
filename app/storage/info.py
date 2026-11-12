@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
-from app.schemas.info import InfoUpdate, InfoAdd
+
 from app.models.info import Info
+from app.schemas.info import InfoAdd, InfoUpdate
 
 
 def get_info(db: Session) -> list[Info]:
-    return db.query(Info).filter(Info.is_visible == True).all()
+    return db.query(Info).filter(Info.is_visible.is_(True)).all()
 
 
 def add_info(db: Session, data: InfoAdd):

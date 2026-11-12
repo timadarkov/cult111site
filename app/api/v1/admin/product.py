@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.dependency import get_db
-from app.services import image_services, product_services
-from app.schemas import product
-from app.schemas import image_copy
-from app.services import image_copy_services
-from app.schemas import image_settings
-from app.services import image_settings_services
-
+from app.schemas import image_copy, image_settings, product
+from app.services import (
+    image_copy_services,
+    image_services,
+    image_settings_services,
+    product_services,
+)
 
 router = APIRouter(
     prefix="/products",

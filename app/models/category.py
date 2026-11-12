@@ -1,6 +1,7 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from database import Base
 from sqlalchemy import Boolean, true
+from sqlalchemy.orm import Mapped, mapped_column
+
+from database import Base
 
 
 class Category(Base):

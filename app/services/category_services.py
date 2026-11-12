@@ -1,12 +1,11 @@
-from database import SessionLocal
-
-from app.storage import category as category_storage
-from app.schemas import category
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from app.models.product import Products
+from sqlalchemy.orm import Session
+
 from app.models.category import Category
+from app.models.product import Products
+from app.schemas import category
+from app.storage import category as category_storage
 
 
 def get_categories(db: Session):

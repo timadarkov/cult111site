@@ -3,7 +3,6 @@ from time import perf_counter
 
 from fastapi import Request
 
-
 logger = logging.getLogger(__name__)
 
 

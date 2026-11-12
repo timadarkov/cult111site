@@ -1,7 +1,6 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.image import ImageSchemaOut
-from pydantic import Field
 
 
 class ProductSchemaOut(BaseModel):

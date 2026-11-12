@@ -16,7 +16,6 @@ os.environ["R2_SECRET_ACCESS_KEY"] = "test-secret-key"
 os.environ["R2_BUCKET"] = "test-bucket"
 os.environ["R2_PUBLIC_URL"] = "https://cdn.test"
 
-from database import Base
 from app.auth.utils import create_token, hash_password
 from app.core.config import settings
 from app.models.brand import Brands
@@ -25,6 +24,8 @@ from app.models.image import Images
 from app.models.product import Products
 from app.models.users import User
 from app.storage import r2
+from database import Base
+
 # fmt: on
 
 
@@ -124,8 +125,8 @@ def db_session(test_engine):
 
 @pytest.fixture(scope="function")
 def client(db_session):
-    from main import app
     from app.dependency import get_db
+    from main import app
 
     def override_get_db():
         yield db_session

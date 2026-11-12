@@ -2,9 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.dependency import get_db
-from app.services import image_services
 from app.schemas import image, product
-
+from app.services import image_services
 
 router = APIRouter(
     prefix="/images",

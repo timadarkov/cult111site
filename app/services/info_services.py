@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
-from app.storage import info as info_storage
+
 from app.schemas import info
+from app.storage import info as info_storage
 
 
 def get_info(db: Session):

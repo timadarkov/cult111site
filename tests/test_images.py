@@ -1,5 +1,6 @@
-import pytest
 from uuid import UUID
+
+import pytest
 from botocore.exceptions import ClientError
 
 from app.core.config import settings

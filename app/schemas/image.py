@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, computed_field
+from pydantic import BaseModel, computed_field
 
 from app.core.config import settings
 

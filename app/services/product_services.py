@@ -1,8 +1,8 @@
 from fastapi import HTTPException
-
-from app.storage import product as product_storage
-from app.schemas import product
 from sqlalchemy.orm import Session
+
+from app.schemas import product
+from app.storage import product as product_storage
 
 
 def get_product_by_id(db: Session, product_id: int):

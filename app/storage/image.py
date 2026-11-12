@@ -5,7 +5,7 @@ from app.models.image import Images
 
 
 def get_images(db: Session) -> list[Images]:
-    return db.query(Images).filter(Images.is_visible == True).all()
+    return db.query(Images).filter(Images.is_visible.is_(True)).all()
 
 
 def create_image(
