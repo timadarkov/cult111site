@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
-from app.schemas import category
+
 from app.models.category import Category
+from app.schemas import category
 
 
 def get_categories(db: Session) -> list[Category]:
-    return db.query(Category).filter(Category.is_visible == True).all()
+    return db.query(Category).filter(Category.is_visible.is_(True)).all()
 
 
 def create_category(db: Session, data: category.CategoryCreate):

@@ -6,7 +6,7 @@ from app.models.image import Images
 def get_image_for_copy(db: Session, image_id: int) -> Images | None:
     return db.query(Images).filter(
         Images.id == image_id,
-        Images.is_visible == True,
+        Images.is_visible.is_(True),
     ).first()
 
 

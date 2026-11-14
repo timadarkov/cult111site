@@ -17,14 +17,6 @@ class InfoAdminResponse(BaseModel):
     is_visible: bool
 
 
-class InfoAdminResponse(BaseModel):
-    slug: str
-    info: str
-    owners: str
-    contacts: str
-    is_visible: bool
-
-
 class InfoResponse(BaseModel):
     slug: str
     info: str

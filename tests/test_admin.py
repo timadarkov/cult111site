@@ -1,16 +1,15 @@
 import re
-import pytest
 
+import pytest
 from fastapi.routing import APIRoute
 from sqlalchemy import select
 
-from main import app
 from app.models.brand import Brands
 from app.models.category import Category
-from app.models.product import Products
 from app.models.info import Info
+from app.models.product import Products
 from app.models.users import User
-
+from main import app
 
 admin_routes = [
     route

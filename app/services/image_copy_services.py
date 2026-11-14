@@ -9,7 +9,6 @@ from app.schemas import image_copy
 from app.storage import image_copy as image_copy_storage
 from app.storage import image_settings as image_settings_storage
 
-
 logger = logging.getLogger(__name__)
 
 

@@ -9,7 +9,7 @@ dependencies = ["fastapi (==0.125.0)", "uvicorn (==0.38.0)", "sqlalchemy (==2.0.
 package-mode = false
 
 [dependency-groups]
-dev = ["pytest (>=9.1.1,<10.0.0)", "pytest-asyncio (>=1.4.0,<2.0.0)", "httpx (>=0.28.1,<0.29.0)"]
+dev = ["pytest (>=9.1.1,<10.0.0)", "pytest-asyncio (>=1.4.0,<2.0.0)", "httpx (>=0.28.1,<0.29.0)", "pytest-cov (>=7.1.0,<8.0.0)", "ruff (>=0.17.5,<0.18.0)"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -17,3 +17,25 @@ pythonpath = ["."]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 addopts = "-ra"
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/alembic/*",
+    "*/tests/*",
+    "*/config.py",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"app/models/__init__.py" = ["F401"]
+"alembic/env.py" = ["F401"]
+"tests/conftest.py" = ["F401"]
+

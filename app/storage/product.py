@@ -1,17 +1,14 @@
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import selectinload
-from fastapi import HTTPException
-from app.models.category import Category
-from app.models.image import Images
+
+from sqlalchemy.orm import Session, selectinload
+
 from app.models.product import Products
 from app.schemas import product
-from app.storage import r2
 
 
 def get_products(db: Session, category_id: int | None = None, brand_id: int | None = None) -> list[Products]:
 
     query = db.query(Products).options(selectinload(
-        Products.images)).filter(Products.is_visible == True)
+        Products.images)).filter(Products.is_visible.is_(True))
 
     if category_id:
 
@@ -24,9 +21,14 @@ def get_products(db: Session, category_id: int | None = None, brand_id: int | No
     return query.all()
 
 
-def get_product_by_id(db: Session, id: int) -> Products:
-
-    return (db.query(Products).options(selectinload(Products.images)).filter(Products.id == id).filter(Products.is_visible == True).first())
+def get_product_by_id(db: Session, id: int) -> Products | None:
+    return (
+        db.query(Products)
+        .options(selectinload(Products.images))
+        .filter(Products.id == id)
+        .filter(Products.is_visible.is_(True))
+        .first()
+    )
 
 
 def get_product_by_id_admin(db: Session, product_id: int | None = None) -> list[Products]:

@@ -2,9 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.dependency import get_db
-from app.services import brand_services
 from app.schemas import brand
-
+from app.services import brand_services
 
 router = APIRouter(
     prefix="/brands",

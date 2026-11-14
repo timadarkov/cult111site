@@ -2,10 +2,10 @@
 Uses only in-memory SQLite; does not import production settings or connect to R2.
 """
 import ast
-from pathlib import Path
 import sys
-from types import ModuleType, SimpleNamespace
 import unittest
+from pathlib import Path
+from types import ModuleType, SimpleNamespace
 from unittest.mock import patch
 
 from fastapi import APIRouter, Depends, FastAPI
@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base
 from sqlalchemy.pool import StaticPool
+
 from app.schemas import image as image_schema
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,11 +27,9 @@ with patch.dict(sys.modules, {"database": database, "app.core.config": config}):
     from app.models.category import Category
     from app.models.image import Images
     from app.models.product import Products
-    from app.schemas import image_copy
-    from app.services import image_copy_services
+    from app.schemas import image_copy, image_settings
+    from app.services import image_copy_services, image_settings_services
     from app.storage import image_copy as image_copy_storage
-    from app.schemas import image_settings
-    from app.services import image_settings_services
 
 
 class ImageSettingsTests(unittest.TestCase):

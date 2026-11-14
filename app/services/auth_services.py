@@ -1,7 +1,6 @@
+import jwt
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-import jwt
-
 
 from app.auth import utils
 from app.core.config import settings

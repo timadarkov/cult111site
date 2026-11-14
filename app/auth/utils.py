@@ -1,7 +1,9 @@
-import jwt
-import bcrypt
-from app.core.config import settings
 from datetime import datetime, timedelta, timezone
+
+import bcrypt
+import jwt
+
+from app.core.config import settings
 
 PUBLIC_KEY = settings.auth_jwt.public_key_path.read_text()
 PRIVATE_KEY = settings.auth_jwt.private_key_path.read_text()

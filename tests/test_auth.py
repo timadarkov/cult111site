@@ -1,9 +1,8 @@
-from app.auth import utils
-import jwt
 from datetime import datetime, timedelta, timezone
-from app.auth.utils import encode_jwt
+
+from app.auth import utils
+from app.auth.utils import decode_jwt, encode_jwt
 from app.core.config import settings
-from app.auth.utils import decode_jwt
 
 
 def test_inactive_user_access_token(client, db_session, user_factory):

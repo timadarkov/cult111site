@@ -1,6 +1,8 @@
-from decimal import Decimal
-from sqlalchemy import ForeignKey, Boolean, true
+
+
+from sqlalchemy import Boolean, ForeignKey, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from database import Base
 
 

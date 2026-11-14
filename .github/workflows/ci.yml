@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: cult111_test
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd "pg_isready -U test_user -d cult111_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_USER: test_user
+      DB_PASSWORD: test_password
+      DB_NAME: cult111_test
+      DB_HOST: localhost
+      DB_DIRECT_HOST: localhost
+      DB_PORT: "5432"
+      DB_SSLMODE: disable
+
+      TEST_DB_HOST: localhost
+      TEST_DB_PORT: "5432"
+      TEST_DB_NAME: cult111_test
+
+      ENVIRONMENT: local
+      HOST_URL: '["http://localhost:8000"]'
+      IMAGE_MAX_SIZE: "5242880"
+
+      R2_ENDPOINT: https://example.invalid
+      R2_ACCESS_KEY_ID: test-access-key
+      R2_SECRET_ACCESS_KEY: test-secret-key
+      R2_BUCKET: test-bucket
+      R2_PUBLIC_URL: https://example.invalid
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pip install poetry==2.5.1
+
+      - name: Configure Poetry
+        run: poetry config virtualenvs.in-project true
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .venv
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-python314-${{ hashFiles('poetry.lock') }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+
+      - name: Generate test JWT keys
+        run: |
+          mkdir -p certs
+          openssl genpkey -algorithm RSA \
+            -out certs/private.pem \
+            -pkeyopt rsa_keygen_bits:2048
+          openssl pkey \
+            -in certs/private.pem \
+            -pubout \
+            -out certs/public.pem
+
+
+      - name: Run Ruff
+        run: poetry run ruff check .
+
+      - name: Run tests with coverage
+        run: poetry run pytest --cov=app --cov-report=term-missing

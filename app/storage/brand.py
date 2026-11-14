@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
-from app.schemas.brand import BrandEdit, BrandVisibilityUpdate, BrandCreate
+
 from app.models.brand import Brands
+from app.schemas.brand import BrandCreate, BrandEdit, BrandVisibilityUpdate
 
 
 def get_brands(db: Session) -> list[Brands]:
-    return db.query(Brands).filter(Brands.is_visible == True).all()
+    return db.query(Brands).filter(Brands.is_visible.is_(True)).all()
 
 
 def get_brands_for_admin(

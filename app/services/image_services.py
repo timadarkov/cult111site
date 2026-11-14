@@ -1,12 +1,13 @@
 import uuid
+
+from botocore.exceptions import ClientError
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from botocore.exceptions import ClientError
+
+from app.core.config import settings
+from app.schemas import image as image_schema
 from app.services.product_services import get_product_by_id
 from app.storage import image, r2
-from app.schemas import image as image_schema
-from app.core.config import settings
-
 
 ALLOWED_TYPES = {
     "image/png": "png",

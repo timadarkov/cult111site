@@ -2,9 +2,9 @@ from getpass import getpass
 
 from sqlalchemy import select
 
-from database import SessionLocal
-from app.models.users import User
 from app.auth.utils import hash_password
+from app.models.users import User
+from database import SessionLocal
 
 
 def create_first_admin() -> None:

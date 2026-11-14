@@ -1,10 +1,11 @@
-from sqlalchemy.orm import Session
-from app.schemas import user
-from app.auth.utils import hash_password
-from app.models.users import User
-from app.storage import users as users_storage
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.auth.utils import hash_password
+from app.models.users import User
+from app.schemas import user
+from app.storage import users as users_storage
 
 
 def create_users(db: Session, user: user.UserCreate):

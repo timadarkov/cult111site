@@ -1,13 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
-from app.dependency import get_db, get_current_user
+from app.core.rate_limit import limiter
+from app.dependency import get_current_user, get_db
+from app.models.users import User
 from app.schemas import auth, user
 from app.services import auth_services
-from app.models.users import User
-from fastapi import Request
-
-from app.core.rate_limit import limiter
 
 router = APIRouter(prefix="", tags=["Auth"])
 
