@@ -301,3 +301,17 @@ poetry run pytest tests/test_products.py -v
 - The test runner refuses to use a database containing existing tables.
 
 Do not use production database credentials or production PostgreSQL servers for tests.
+
+## Tests and coverage
+
+Run tests with coverage:
+
+```bash
+poetry run pytest --cov=app --cov-report=term-missing
+```
+
+Run the linter:
+
+```bash
+poetry run ruff check .
+```
