@@ -1,5 +1,6 @@
 
 from app.models.image import Images
+import nonexistent_module
 
 
 def test_hidden_product_not_in_list(
@@ -448,7 +449,3 @@ def test_get_products(
         and item["name"] == "Test t-shirt"
         for item in products
     )
-
-
-def test_ci_intentional_failure():
-    assert 1 == 2
