@@ -448,3 +448,7 @@ def test_get_products(
         and item["name"] == "Test t-shirt"
         for item in products
     )
+
+
+def test_ci_intentional_failure():
+    assert 1 == 2
