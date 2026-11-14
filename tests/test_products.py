@@ -1,6 +1,5 @@
 
 from app.models.image import Images
-import nonexistent_module
 
 
 def test_hidden_product_not_in_list(
