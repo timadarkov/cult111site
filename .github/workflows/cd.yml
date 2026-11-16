@@ -1,0 +1,132 @@
+name: CD
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+
+    steps:
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+
+      - name: Deploy production
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -o IdentitiesOnly=yes \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o ConnectTimeout=15 \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "bash -se -- '$GITHUB_SHA'" <<'REMOTE'
+          set -euo pipefail
+
+          expected_sha="$1"
+          cd /home/deploy/cult111site
+
+          test "$(git branch --show-current)" = "main"
+
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Server repository has local changes. Deployment stopped."
+            exit 1
+          fi
+
+          git fetch origin main
+
+          if [ "$(git rev-parse origin/main)" != "$expected_sha" ]; then
+            echo "main has changed since this run started. Start a new run."
+            exit 1
+          fi
+
+          echo "Previous commit: $(git rev-parse HEAD)"
+          git merge --ff-only "$expected_sha"
+
+          compose=(
+            docker compose
+            --project-name deploy
+            --env-file .env.prod
+            -f deploy/docker-compose.yml
+            -f deploy/docker-compose.prod.yml
+          )
+
+          "${compose[@]}" config --quiet
+          "${compose[@]}" build backend
+          "${compose[@]}" run --rm --no-deps nginx nginx -t
+
+          "${compose[@]}" up \
+            -d \
+            --no-build \
+            --force-recreate \
+            --wait \
+            --wait-timeout 120 \
+            backend nginx
+          REMOTE
+
+      - name: Check public HTTPS endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for attempt in $(seq 1 12); do
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              --connect-timeout 5 \
+              --max-time 10 \
+              https://cult111.com/health \
+              -o /tmp/deploy-health.json; then
+              if python3 -c '
+          import json
+          import sys
+
+          with open("/tmp/deploy-health.json") as response:
+              data = json.load(response)
+
+          sys.exit(
+              0 if data.get("status") == "ok"
+              and data.get("deployment") == "automated"
+              else 1
+          )
+          '; then
+                echo "Production health check passed."
+                exit 0
+              fi
+            fi
+
+            echo "Health check attempt $attempt failed."
+            sleep 5
+          done
+
+          echo "Production health check failed."
+          exit 1
+
+      - name: Remove deployment SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
