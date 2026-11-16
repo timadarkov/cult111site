@@ -80,55 +80,115 @@ Open `http://localhost:5000` and `http://localhost:5001`. The Node servers proxy
 
 ## Deployment
 
-The production Compose overlay reads `.env.prod`. Pass that file explicitly for Compose interpolation as well:
+Production runs as Compose project `deploy` in
+`/home/deploy/cult111site`.
 
-```sh
-cd deploy
-docker compose --env-file ../.env.prod -f docker-compose.yml -f docker-compose.prod.yml config --services
-```
+Run production commands from the repository root. Production requires
+`.env.prod`, JWT keys in `certs/`, TLS certificates in `certbot/`,
+and the frontend directories referenced by Compose.
 
-The output should contain only `backend`.
+These files and credentials must be provisioned on the server separately.
+Do not commit secrets or edit tracked files directly on the server.
 
-### Logs and Troubleshooting
+### GitHub Actions deployment
 
-Local backend logs:
+The CD workflow currently supports manual deployment:
+
+1. Merge the reviewed PR into `main` after CI passes.
+2. Open GitHub Actions → CD → Run workflow.
+3. Select `main` and start the workflow.
+4. Check that deployment and the public health check both pass.
+
+Required repository secrets:
+
+- `DEPLOY_HOST`
+- `DEPLOY_USER`
+- `DEPLOY_SSH_KEY`
+- `DEPLOY_KNOWN_HOSTS`
+
+The workflow checks the server repository, updates it to the triggering
+commit, builds the backend image, validates Nginx configuration, and
+recreates the backend and Nginx containers.
+
+Database migrations run automatically through `deploy/entrypoint.sh`
+before the backend starts. A migration failure prevents application startup.
+
+Deployment briefly interrupts the production service. A failed workflow
+does not automatically restore the previous version.
+
+The public health check requests `https://cult111.com/health` and verifies
+the JSON response. This checks API availability through HTTPS and Nginx;
+it does not verify database or object storage availability.
+
+### Production diagnostics
+
+Run from `/home/deploy/cult111site` on the server:
 
 ```bash
-docker compose --env-file ../.env logs -f backend
-```
-
-Local database logs:
-
-```bash
-docker compose --env-file ../.env logs -f postgres
-```
-
-Container status:
-
-```bash
-docker compose --env-file ../.env ps
-```
-
-Production logs:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f backend
-```
-
-If migrations fail, the application will not start. Check the error in the logs, database availability, and connection settings. After fixing the issue, run the startup command again.
-
-If migration files have changed, rebuild the image with `--build`: the `alembic/` directory is not mounted from the host in the current configuration.
-
-A `Could not import module` error means you should check the application module path. This project uses `main:app`.
-
-Periodic `GET /docs` requests come from the container health check. A `200 OK` response means the documentation page is accessible.
-
-### Create first admin
 docker compose \
-  --env-file .env \
+  --project-name deploy \
+  --env-file .env.prod \
   -f deploy/docker-compose.yml \
-  -f deploy/docker-compose.override.yml \
-  exec backend python -m scripts.create_first_admin
+  -f deploy/docker-compose.prod.yml \
+  ps
+```
+
+View recent backend and Nginx logs:
+
+```bash
+docker compose \
+  --project-name deploy \
+  --env-file .env.prod \
+  -f deploy/docker-compose.yml \
+  -f deploy/docker-compose.prod.yml \
+  logs --tail 100 backend nginx
+```
+
+Check the public endpoint:
+
+```bash
+curl --fail --show-error https://cult111.com/health
+```
+
+### Rollback
+
+A rollback must restore application code compatible with the current
+database schema. Reverting Git commits does not undo database migrations.
+
+Before rolling back, inspect the deployment logs and identify the faulty
+change. The deployment log includes `Previous commit`, which identifies
+the server repository revision before that deployment.
+
+For a code rollback:
+
+1. Create a rollback branch from a freshly updated `main`.
+2. Revert the faulty commit or commits using `git revert`.
+3. Open a PR, run CI, and obtain review.
+4. Merge the rollback PR into `main`.
+5. Run the CD workflow manually on `main`.
+6. Verify the public health endpoint and the affected application behavior.
+
+Example for one ordinary, non-merge commit, run locally:
+
+```bash
+git switch main
+git pull --ff-only origin main
+git switch -c fix/rollback-production
+git revert <FAULTY_COMMIT_SHA>
+git push -u origin fix/rollback-production
+```
+
+Replace `<FAULTY_COMMIT_SHA>` with the actual faulty commit.
+For a merge commit, inspect its parents and select the correct mainline
+before using `git revert -m`; do not apply the example blindly.
+
+Revert preserves shared Git history and creates a new commit containing
+the undo operation. Do not force-push or reset production `main` backward.
+
+If a migration removed or changed data required by the previous code,
+prepare a compatible corrective migration or use a verified database
+recovery procedure before redeploying. Do not blindly run
+`alembic downgrade` on production.
 
 
 ## Dependency Management

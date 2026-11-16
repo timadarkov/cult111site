@@ -49,7 +49,7 @@ app.include_router(api_v1, prefix="/api/v1")
 
 @app.get("/health", include_in_schema=False)
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "deployment": "automated"}
 
 
 origins = settings.host_url
