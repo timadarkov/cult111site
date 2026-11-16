@@ -77,7 +77,7 @@ jobs:
 
           "${compose[@]}" config --quiet
           "${compose[@]}" build backend
-          "${compose[@]}" run --rm --no-deps nginx nginx -t
+          "${compose[@]}" run --rm --no-deps -T --interactive=false nginx nginx -t </dev/null
 
           "${compose[@]}" up \
             -d \
@@ -86,6 +86,7 @@ jobs:
             --wait \
             --wait-timeout 120 \
             backend nginx
+          echo "Production containers recreated successfully."
           REMOTE
 
       - name: Check public HTTPS endpoint
