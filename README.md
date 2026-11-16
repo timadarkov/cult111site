@@ -92,13 +92,15 @@ Do not commit secrets or edit tracked files directly on the server.
 
 ### GitHub Actions deployment
 
-The CD workflow currently supports manual deployment:
+The CD workflow automatically deploys changes pushed to `main`,
+including merged PRs.
 
 1. Merge the reviewed PR into `main` after CI passes.
-2. Open GitHub Actions → CD → Run workflow.
-3. Select `main` and start the workflow.
-4. Check that deployment and the public health check both pass.
+2. Open GitHub Actions → CD and check the automatically started run.
+3. Verify that deployment and the public health check both pass.
 
+To deploy the current `main` manually, open GitHub Actions → CD →
+Run workflow and select `main`.
 Required repository secrets:
 
 - `DEPLOY_HOST`
@@ -165,7 +167,7 @@ For a code rollback:
 2. Revert the faulty commit or commits using `git revert`.
 3. Open a PR, run CI, and obtain review.
 4. Merge the rollback PR into `main`.
-5. Run the CD workflow manually on `main`.
+5. Check the CD workflow automatically triggered by the merge.
 6. Verify the public health endpoint and the affected application behavior.
 
 Example for one ordinary, non-merge commit, run locally:

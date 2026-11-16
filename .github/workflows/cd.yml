@@ -2,6 +2,9 @@ name: CD
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -113,6 +116,7 @@ jobs:
           sys.exit(
               0 if data.get("status") == "ok"
               and data.get("deployment") == "automated"
+              and data.get("delivery") == "push-to-main"
               else 1
           )
           '; then
