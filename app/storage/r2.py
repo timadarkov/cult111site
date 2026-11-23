@@ -35,3 +35,14 @@ def delete_object(key: str):
         Bucket=settings.r2_bucket,
         Key=key,
     )
+
+
+def copy_object(source_key: str, key: str):
+    s3.copy_object(
+        Bucket=settings.r2_bucket,
+        CopySource={
+            "Bucket": settings.r2_bucket,
+            "Key": source_key,
+        },
+        Key=key,
+    )

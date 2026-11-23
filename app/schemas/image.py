@@ -1,4 +1,4 @@
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, ConfigDict, computed_field
 
 from app.core.config import settings
 
@@ -17,6 +17,7 @@ class ImageCreate(BaseModel):
 
 
 class ImageSchemaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     product_id: int
     is_main: bool

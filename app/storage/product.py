@@ -31,16 +31,22 @@ def get_product_by_id(db: Session, id: int) -> Products | None:
     )
 
 
-def get_product_by_id_admin(db: Session, product_id: int | None = None) -> list[Products]:
-
-    query = db.query(Products)
-    query = query.filter(Products.id == product_id)
-
-    return query.first()
+def get_product_by_id_admin(
+    db: Session,
+    product_id: int,
+) -> Products | None:
+    return (
+        db.query(Products)
+        .options(selectinload(Products.images))
+        .filter(Products.id == product_id)
+        .first()
+    )
 
 
 def get_product_admin(db: Session) -> list[Products]:
-    query = db.query(Products)
+    query = db.query(Products).options(
+        selectinload(Products.images)
+    )
     return query.all()
 
 
@@ -52,9 +58,22 @@ def create_product(db: Session, data: product.ProductCreate):
         category_id=data.category_id,
         brand_id=data.brand_id,
     )
+
     db.add(product)
     db.commit()
-    db.refresh(product)
+    db.refresh(
+        product,
+        attribute_names=[
+            "id",
+            "name",
+            "price",
+            "description",
+            "category_id",
+            "brand_id",
+            "is_visible",
+            "images",
+        ],
+    )
     return product
 
 
@@ -71,8 +90,19 @@ def update_product_visibility(
     product.is_visible = data.is_visible
 
     db.commit()
-    db.refresh(product)
-
+    db.refresh(
+        product,
+        attribute_names=[
+            "id",
+            "name",
+            "price",
+            "description",
+            "category_id",
+            "brand_id",
+            "is_visible",
+            "images",
+        ],
+    )
     return product
 
 
@@ -88,8 +118,19 @@ def edit_product(db: Session, product_id: int, data: product.ProductEdit) -> Pro
         setattr(product, field, value)
 
     db.commit()
-    db.refresh(product)
-
+    db.refresh(
+        product,
+        attribute_names=[
+            "id",
+            "name",
+            "price",
+            "description",
+            "category_id",
+            "brand_id",
+            "is_visible",
+            "images",
+        ],
+    )
     return product
 
 
