@@ -112,7 +112,10 @@ def edit_product(db: Session, product_id: int, data: product.ProductEdit) -> Pro
     if not product:
         return None
 
-    changes = data.model_dump(exclude_unset=True)
+    changes = data.model_dump(
+        exclude_unset=True,
+        exclude={"images"},
+    )
 
     for field, value in changes.items():
         setattr(product, field, value)
