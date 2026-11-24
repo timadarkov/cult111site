@@ -13,11 +13,7 @@ def get_image_for_copy(db: Session, image_id: int) -> Images | None:
 def copy_image_file(source_key: str, key: str):
     from app.storage import r2
 
-    r2.s3.copy_object(
-        Bucket=r2.settings.r2_bucket,
-        CopySource={"Bucket": r2.settings.r2_bucket, "Key": source_key},
-        Key=key,
-    )
+    r2.copy_object(source_key, key)
 
 
 def delete_image_file(key: str):
