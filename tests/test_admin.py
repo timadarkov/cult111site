@@ -28,16 +28,16 @@ assert endpoints, "No admin endpoints discovered"
 
 
 @pytest.mark.parametrize("method, path", endpoints)
-def test_admin_requires_auth(client, method, path):
+async def test_admin_requires_auth(client, method, path):
     url = re.sub(r"\{[^{}]+\}", "123", path)
 
-    response = client.request(method, url)
+    response = await client.request(method, url)
 
     assert response.status_code == 401
 
 
-def test_admin_create_brand(client, admin_headers, db_session):
-    response = client.post(
+async def test_admin_create_brand(client, admin_headers, db_session):
+    response = await client.post(
         "/api/v1/admin/brands",
         headers=admin_headers,
         json={
@@ -53,7 +53,7 @@ def test_admin_create_brand(client, admin_headers, db_session):
     assert data["name"] == "Nike"
     assert "id" in data
 
-    brand = db_session.scalar(
+    brand = await db_session.scalar(
         select(Brands).where(Brands.id == data["id"])
     )
 
@@ -62,10 +62,10 @@ def test_admin_create_brand(client, admin_headers, db_session):
     assert brand.is_visible is True
 
 
-def test_regular_user_cannot_create_brand(
+async def test_regular_user_cannot_create_brand(
     client, regular_user_headers, db_session
 ):
-    response = client.post(
+    response = await client.post(
         "/api/v1/admin/brands",
         headers=regular_user_headers,
         json={
@@ -75,19 +75,19 @@ def test_regular_user_cannot_create_brand(
     )
 
     assert response.status_code == 403
-    brand = db_session.scalar(
+    brand = await db_session.scalar(
         select(Brands).where(Brands.name == "Adidas")
     )
 
     assert brand is None
 
 
-def test_admin_create_duplicate_brand(
+async def test_admin_create_duplicate_brand(
     client, admin_headers, brand_factory
 ):
-    brand_factory(name="Nike")
+    await brand_factory(name="Nike")
 
-    response = client.post(
+    response = await client.post(
         "/api/v1/admin/brands",
         headers=admin_headers,
         json={"name": "Nike"},
@@ -96,16 +96,18 @@ def test_admin_create_duplicate_brand(
     assert response.status_code == 409
 
 
-def test_admin_edit_duplicate_brand(
+async def test_admin_edit_duplicate_brand(
     client, admin_headers, brand_factory, db_session
 ):
-    brand_factory(name="Nike")
-    adidas = brand_factory(name="Adidas")
+    await brand_factory(name="Nike")
+    adidas = await brand_factory(name="Adidas")
 
-    db_session.commit()
+    adidas_id = adidas.id
 
-    response = client.patch(
-        f"/api/v1/admin/brands/{adidas.id}",
+    await db_session.commit()
+
+    response = await client.patch(
+        f"/api/v1/admin/brands/{adidas_id}",
         headers=admin_headers,
         json={"name": "Nike"},
     )
@@ -113,18 +115,18 @@ def test_admin_edit_duplicate_brand(
     assert response.status_code == 409
 
     db_session.expire_all()
-    brand = db_session.get(Brands, adidas.id)
+    brand = await db_session.get(Brands, adidas_id)
 
     assert brand is not None
     assert brand.name == "Adidas"
 
 
-def test_admin_edit_brand(
+async def test_admin_edit_brand(
     client, admin_headers, brand_factory, db_session
 ):
-    brand = brand_factory(name="Nike")
+    brand = await brand_factory(name="Nike")
 
-    response = client.patch(
+    response = await client.patch(
         f"/api/v1/admin/brands/{brand.id}",
         headers=admin_headers,
         json={"name": "Adidas"},
@@ -136,17 +138,17 @@ def test_admin_edit_brand(
 
     assert data["name"] == "Adidas"
 
-    db_session.refresh(brand)
+    await db_session.refresh(brand)
 
     assert brand.name == "Adidas"
 
 
-def test_admin_update_brand_visibility(
+async def test_admin_update_brand_visibility(
     client, admin_headers, brand_factory, db_session
 ):
-    brand = brand_factory(name="Nike", is_visible=True)
+    brand = await brand_factory(name="Nike", is_visible=True)
 
-    response = client.patch(
+    response = await client.patch(
         f"/api/v1/admin/brands/{brand.id}/visibility",
         headers=admin_headers,
         json={"is_visible": False},
@@ -157,21 +159,21 @@ def test_admin_update_brand_visibility(
     data = response.json()
     assert data["is_visible"] is False
 
-    db_session.refresh(brand)
+    await db_session.refresh(brand)
 
     assert brand.is_visible is False
 
 
-def test_hidden_brand_visibility(
+async def test_hidden_brand_visibility(
     client, admin_headers, brand_factory
 ):
-    brand = brand_factory(
+    brand = await brand_factory(
         name="Nike",
         is_visible=False,
     )
 
-    public_response = client.get("/api/v1/brands")
-    admin_response = client.get(
+    public_response = await client.get("/api/v1/brands")
+    admin_response = await client.get(
         "/api/v1/admin/brands",
         headers=admin_headers,
     )
@@ -191,8 +193,8 @@ def test_hidden_brand_visibility(
     assert brand.id in admin_ids
 
 
-def test_admin_create_category(client, admin_headers, db_session):
-    response = client.post(
+async def test_admin_create_category(client, admin_headers, db_session):
+    response = await client.post(
         "/api/v1/admin/categories",
         headers=admin_headers,
         json={
@@ -208,17 +210,17 @@ def test_admin_create_category(client, admin_headers, db_session):
     assert data["name"] == "Electronics"
     assert "id" in data
 
-    category = db_session.get(Category, data["id"])
+    category = await db_session.get(Category, data["id"])
 
     assert category is not None
     assert category.name == "Electronics"
     assert category.is_visible is True
 
 
-def test_admin_create_hidden_category(
+async def test_admin_create_hidden_category(
     client, admin_headers, db_session
 ):
-    response = client.post(
+    response = await client.post(
         "/api/v1/admin/categories",
         headers=admin_headers,
         json={
@@ -231,18 +233,18 @@ def test_admin_create_hidden_category(
 
     data = response.json()
 
-    category = db_session.get(Category, data["id"])
+    category = await db_session.get(Category, data["id"])
 
     assert category is not None
     assert category.is_visible is False
 
 
-def test_admin_create_duplicate_category(
+async def test_admin_create_duplicate_category(
     client, admin_headers, category_factory
 ):
-    category_factory(name="Electronics")
+    await category_factory(name="Electronics")
 
-    response = client.post(
+    response = await client.post(
         "/api/v1/admin/categories",
         headers=admin_headers,
         json={"name": "Electronics"},
@@ -251,16 +253,16 @@ def test_admin_create_duplicate_category(
     assert response.status_code == 409
 
 
-def test_admin_edit_duplicate_category(
+async def test_admin_edit_duplicate_category(
     client, admin_headers, category_factory, db_session
 ):
-    category_factory(name="Electronics")
-    phones = category_factory(name="Phones")
+    await category_factory(name="Electronics")
+    phones = await category_factory(name="Phones")
+    phones_id = phones.id
+    await db_session.commit()
 
-    db_session.commit()
-
-    response = client.patch(
-        f"/api/v1/admin/categories/{phones.id}",
+    response = await client.patch(
+        f"/api/v1/admin/categories/{phones_id}",
         headers=admin_headers,
         json={"name": "Electronics"},
     )
@@ -269,18 +271,18 @@ def test_admin_edit_duplicate_category(
 
     db_session.expire_all()
 
-    category = db_session.get(Category, phones.id)
+    category = await db_session.get(Category, phones_id)
 
     assert category is not None
     assert category.name == "Phones"
 
 
-def test_admin_edit_category(
+async def test_admin_edit_category(
     client, admin_headers, category_factory, db_session
 ):
-    category = category_factory(name="Electronics")
+    category = await category_factory(name="Electronics")
 
-    response = client.patch(
+    response = await client.patch(
         f"/api/v1/admin/categories/{category.id}",
         headers=admin_headers,
         json={"name": "Smartphones"},
@@ -291,20 +293,20 @@ def test_admin_edit_category(
     data = response.json()
     assert data["name"] == "Smartphones"
 
-    db_session.refresh(category)
+    await db_session.refresh(category)
 
     assert category.name == "Smartphones"
 
 
-def test_admin_update_category_visibility(
+async def test_admin_update_category_visibility(
     client, admin_headers, category_factory, db_session
 ):
-    category = category_factory(
+    category = await category_factory(
         name="Electronics",
         is_visible=True,
     )
 
-    response = client.patch(
+    response = await client.patch(
         f"/api/v1/admin/categories/{category.id}/visibility",
         headers=admin_headers,
         json={"is_visible": False},
@@ -313,22 +315,22 @@ def test_admin_update_category_visibility(
     assert response.status_code == 200
     assert response.json()["is_visible"] is False
 
-    db_session.refresh(category)
+    await db_session.refresh(category)
 
     assert category.is_visible is False
 
 
-def test_hidden_category_visibility(
+async def test_hidden_category_visibility(
     client, admin_headers, category_factory
 ):
-    category = category_factory(
+    category = await category_factory(
         name="Electronics",
         is_visible=False,
     )
 
-    public_response = client.get("/api/v1/categories")
+    public_response = await client.get("/api/v1/categories")
 
-    admin_response = client.get(
+    admin_response = await client.get(
         "/api/v1/admin/categories",
         headers=admin_headers,
     )
@@ -348,13 +350,13 @@ def test_hidden_category_visibility(
     assert category.id in admin_ids
 
 
-def test_admin_delete_category(
+async def test_admin_delete_category(
     client, admin_headers, category_factory, db_session
 ):
-    category = category_factory(name="Electronics")
+    category = await category_factory(name="Electronics")
     category_id = category.id
 
-    response = client.delete(
+    response = await client.delete(
         f"/api/v1/admin/categories/{category_id}",
         headers=admin_headers,
     )
@@ -363,10 +365,10 @@ def test_admin_delete_category(
 
     db_session.expire_all()
 
-    assert db_session.get(Category, category_id) is None
+    assert await db_session.get(Category, category_id) is None
 
 
-def test_admin_cannot_delete_category_with_products(
+async def test_admin_cannot_delete_category_with_products(
     client,
     admin_headers,
     category_factory,
@@ -374,10 +376,10 @@ def test_admin_cannot_delete_category_with_products(
     product_factory,
     db_session,
 ):
-    category = category_factory(name="Electronics")
-    brand = brand_factory(name="Nike")
+    category = await category_factory(name="Electronics")
+    brand = await brand_factory(name="Nike")
 
-    product = product_factory(
+    product = await product_factory(
         name="Phone",
         price=1000,
         category_id=category.id,
@@ -387,9 +389,9 @@ def test_admin_cannot_delete_category_with_products(
     category_id = category.id
     product_id = product.id
 
-    db_session.commit()
+    await db_session.commit()
 
-    response = client.delete(
+    response = await client.delete(
         f"/api/v1/admin/categories/{category_id}",
         headers=admin_headers,
     )
@@ -398,17 +400,17 @@ def test_admin_cannot_delete_category_with_products(
 
     db_session.expire_all()
 
-    assert db_session.get(Category, category_id) is not None
-    assert db_session.get(Products, product_id) is not None
+    assert await db_session.get(Category, category_id) is not None
+    assert await db_session.get(Products, product_id) is not None
 
 
-def test_admin_delete_brand(
+async def test_admin_delete_brand(
     client, admin_headers, brand_factory, db_session
 ):
-    brand = brand_factory(name="Nike")
+    brand = await brand_factory(name="Nike")
     brand_id = brand.id
 
-    response = client.delete(
+    response = await client.delete(
         f"/api/v1/admin/brands/{brand_id}",
         headers=admin_headers,
     )
@@ -416,10 +418,10 @@ def test_admin_delete_brand(
     assert response.status_code == 204
 
     db_session.expire_all()
-    assert db_session.get(Brands, brand_id) is None
+    assert await db_session.get(Brands, brand_id) is None
 
 
-def test_admin_cannot_delete_brand_with_products(
+async def test_admin_cannot_delete_brand_with_products(
     client,
     admin_headers,
     brand_factory,
@@ -427,10 +429,10 @@ def test_admin_cannot_delete_brand_with_products(
     product_factory,
     db_session,
 ):
-    brand = brand_factory(name="Nike")
-    category = category_factory(name="Electronics")
+    brand = await brand_factory(name="Nike")
+    category = await category_factory(name="Electronics")
 
-    product = product_factory(
+    product = await product_factory(
         name="Phone",
         price=1000,
         brand_id=brand.id,
@@ -440,9 +442,9 @@ def test_admin_cannot_delete_brand_with_products(
     brand_id = brand.id
     product_id = product.id
 
-    db_session.commit()
+    await db_session.commit()
 
-    response = client.delete(
+    response = await client.delete(
         f"/api/v1/admin/brands/{brand_id}",
         headers=admin_headers,
     )
@@ -451,17 +453,17 @@ def test_admin_cannot_delete_brand_with_products(
 
     db_session.expire_all()
 
-    assert db_session.get(Brands, brand_id) is not None
-    assert db_session.get(Products, product_id) is not None
+    assert await db_session.get(Brands, brand_id) is not None
+    assert await db_session.get(Products, product_id) is not None
 
 
-def test_admin_create_product(
+async def test_admin_create_product(
     client, admin_headers, brand_factory, category_factory, db_session
 ):
-    brand = brand_factory(name="Nike")
-    category = category_factory(name="Shoes")
+    brand = await brand_factory(name="Nike")
+    category = await category_factory(name="Shoes")
 
-    response = client.post(
+    response = await client.post(
         "/api/v1/admin/products",
         headers=admin_headers,
         json={
@@ -479,26 +481,26 @@ def test_admin_create_product(
     assert data["name"] == "Air Max"
     assert data["price"] == 150
 
-    product = db_session.get(Products, data["id"])
+    product = await db_session.get(Products, data["id"])
     assert product is not None
     assert product.name == "Air Max"
 
 
-def test_admin_partial_update_product(
+async def test_admin_partial_update_product(
     client, admin_headers, product_factory,
     brand_factory, category_factory, db_session
 ):
-    brand = brand_factory(name="Nike")
-    category = category_factory(name="Shoes")
+    brand = await brand_factory(name="Nike")
+    category = await category_factory(name="Shoes")
 
-    product = product_factory(
+    product = await product_factory(
         name="Air Max",
         price=150,
         brand_id=brand.id,
         category_id=category.id,
     )
 
-    response = client.patch(
+    response = await client.patch(
         f"/api/v1/admin/products/{product.id}",
         headers=admin_headers,
         json={"price": 200},
@@ -506,7 +508,7 @@ def test_admin_partial_update_product(
 
     assert response.status_code == 200
 
-    db_session.refresh(product)
+    await db_session.refresh(product)
 
     assert float(product.price) == 200
     assert product.name == "Air Max"
@@ -514,13 +516,13 @@ def test_admin_partial_update_product(
 
 
 @pytest.mark.parametrize("price", [0, -1, -100])
-def test_admin_cannot_create_product_with_invalid_price(
+async def test_admin_cannot_create_product_with_invalid_price(
     client, admin_headers, brand_factory, category_factory, price
 ):
-    brand = brand_factory(name="Nike")
-    category = category_factory(name="Shoes")
+    brand = await brand_factory(name="Nike")
+    category = await category_factory(name="Shoes")
 
-    response = client.post(
+    response = await client.post(
         "/api/v1/admin/products",
         headers=admin_headers,
         json={
@@ -535,14 +537,14 @@ def test_admin_cannot_create_product_with_invalid_price(
     assert response.status_code == 422
 
 
-def test_hidden_product_visibility(
+async def test_hidden_product_visibility(
     client, admin_headers, product_factory,
     brand_factory, category_factory
 ):
-    brand = brand_factory(name="Nike")
-    category = category_factory(name="Shoes")
+    brand = await brand_factory(name="Nike")
+    category = await category_factory(name="Shoes")
 
-    product = product_factory(
+    product = await product_factory(
         name="Air Max",
         price=150,
         brand_id=brand.id,
@@ -550,9 +552,9 @@ def test_hidden_product_visibility(
         is_visible=False,
     )
 
-    public_response = client.get("/api/v1/products")
+    public_response = await client.get("/api/v1/products")
 
-    admin_response = client.get(
+    admin_response = await client.get(
         "/api/v1/admin/products",
         headers=admin_headers,
     )
@@ -568,7 +570,7 @@ def test_hidden_product_visibility(
 
 
 @pytest.mark.parametrize("price", [0, -1, -100])
-def test_admin_cannot_update_product_with_invalid_price(
+async def test_admin_cannot_update_product_with_invalid_price(
     client,
     admin_headers,
     brand_factory,
@@ -577,17 +579,17 @@ def test_admin_cannot_update_product_with_invalid_price(
     db_session,
     price,
 ):
-    brand = brand_factory(name="Nike")
-    category = category_factory(name="Shoes")
+    brand = await brand_factory(name="Nike")
+    category = await category_factory(name="Shoes")
 
-    product = product_factory(
+    product = await product_factory(
         name="Air Max",
         price=150,
         brand_id=brand.id,
         category_id=category.id,
     )
 
-    response = client.patch(
+    response = await client.patch(
         f"/api/v1/admin/products/{product.id}",
         headers=admin_headers,
         json={"price": price},
@@ -595,11 +597,11 @@ def test_admin_cannot_update_product_with_invalid_price(
 
     assert response.status_code == 422
 
-    db_session.refresh(product)
+    await db_session.refresh(product)
     assert float(product.price) == 150
 
 
-def test_admin_soft_delete_product(
+async def test_admin_soft_delete_product(
     client,
     admin_headers,
     brand_factory,
@@ -607,10 +609,10 @@ def test_admin_soft_delete_product(
     product_factory,
     db_session,
 ):
-    brand = brand_factory(name="Nike")
-    category = category_factory(name="Shoes")
+    brand = await brand_factory(name="Nike")
+    category = await category_factory(name="Shoes")
 
-    product = product_factory(
+    product = await product_factory(
         name="Air Max",
         price=150,
         brand_id=brand.id,
@@ -619,7 +621,7 @@ def test_admin_soft_delete_product(
 
     product_id = product.id
 
-    response = client.delete(
+    response = await client.delete(
         f"/api/v1/admin/products/{product_id}",
         headers=admin_headers,
     )
@@ -628,13 +630,13 @@ def test_admin_soft_delete_product(
 
     db_session.expire_all()
 
-    saved_product = db_session.get(Products, product_id)
+    saved_product = await db_session.get(Products, product_id)
 
     assert saved_product is not None
     assert saved_product.is_visible is False
 
-    public_response = client.get("/api/v1/products")
-    admin_response = client.get(
+    public_response = await client.get("/api/v1/products")
+    admin_response = await client.get(
         "/api/v1/admin/products",
         headers=admin_headers,
     )
@@ -649,8 +651,8 @@ def test_admin_soft_delete_product(
     assert product_id in admin_ids
 
 
-def test_admin_create_info(client, admin_headers, db_session):
-    response = client.post(
+async def test_admin_create_info(client, admin_headers, db_session):
+    response = await client.post(
         "/api/v1/admin/info",
         headers=admin_headers,
         json={
@@ -663,12 +665,12 @@ def test_admin_create_info(client, admin_headers, db_session):
 
     assert response.status_code == 201
 
-    record = db_session.get(Info, "about")
+    record = await db_session.get(Info, "about")
 
     assert record is not None
     assert record.info == "About our shop"
 
-    public_response = client.get("/api/v1/info")
+    public_response = await client.get("/api/v1/info")
 
     assert public_response.status_code == 200
     assert any(
@@ -677,7 +679,7 @@ def test_admin_create_info(client, admin_headers, db_session):
     )
 
 
-def test_admin_update_info(client, admin_headers, db_session):
+async def test_admin_update_info(client, admin_headers, db_session):
     record = Info(
         slug="about",
         info="Old information",
@@ -685,9 +687,9 @@ def test_admin_update_info(client, admin_headers, db_session):
         contacts="old@example.com",
     )
     db_session.add(record)
-    db_session.flush()
+    await db_session.flush()
 
-    response = client.patch(
+    response = await client.patch(
         "/api/v1/admin/info/about",
         headers=admin_headers,
         json={"info": "New information"},
@@ -695,14 +697,14 @@ def test_admin_update_info(client, admin_headers, db_session):
 
     assert response.status_code == 200
 
-    db_session.refresh(record)
+    await db_session.refresh(record)
 
     assert record.info == "New information"
     assert record.owners == "Timofei"
     assert record.contacts == "old@example.com"
 
 
-def test_hidden_info_not_public(client, admin_headers, db_session):
+async def test_hidden_info_not_public(client, admin_headers, db_session):
     record = Info(
         slug="secret",
         info="Private information",
@@ -711,9 +713,9 @@ def test_hidden_info_not_public(client, admin_headers, db_session):
         is_visible=False,
     )
     db_session.add(record)
-    db_session.flush()
+    await db_session.flush()
 
-    response = client.get("/api/v1/info")
+    response = await client.get("/api/v1/info")
 
     assert response.status_code == 200
     assert all(
@@ -721,11 +723,11 @@ def test_hidden_info_not_public(client, admin_headers, db_session):
         for item in response.json()
     )
 
-    assert db_session.get(Info, "secret") is not None
+    assert await db_session.get(Info, "secret") is not None
 
 
-def test_admin_create_user(client, admin_headers, db_session):
-    response = client.post(
+async def test_admin_create_user(client, admin_headers, db_session):
+    response = await client.post(
         "/api/v1/admin/users",
         headers=admin_headers,
         json={
@@ -746,17 +748,17 @@ def test_admin_create_user(client, admin_headers, db_session):
     assert "password" not in data
     assert "password_hash" not in data
 
-    user = db_session.get(User, data["id"])
+    user = await db_session.get(User, data["id"])
 
     assert user is not None
     assert user.password_hash != "Test12345!"
     assert user.is_active is True
 
 
-def test_regular_user_cannot_create_user(
+async def test_regular_user_cannot_create_user(
     client, regular_user_headers, db_session
 ):
-    response = client.post(
+    response = await client.post(
         "/api/v1/admin/users",
         headers=regular_user_headers,
         json={
@@ -768,8 +770,11 @@ def test_regular_user_cannot_create_user(
 
     assert response.status_code == 403
 
-    user = db_session.query(User).filter(
+    stmt = select(User).where(
         User.username == "blocked123"
-    ).first()
+    ).limit(1)
+
+    result = await db_session.execute(stmt)
+    user = result.scalars().first()
 
     assert user is None

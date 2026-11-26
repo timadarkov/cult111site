@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency import get_current_admin, get_db
 from app.models.users import User
@@ -13,20 +13,20 @@ router = APIRouter(
 
 
 @router.post("", response_model=user.UserResponse, status_code=201)
-def create_users(user: user.UserCreate, db: Session = Depends(get_db),):
-    return users_services.create_users(db, user)
+async def create_users(user: user.UserCreate, db: AsyncSession = Depends(get_db)):
+    return await users_services.create_users(db, user)
 
 
 @router.get("", response_model=list[user.UserResponseAdmin])
-def get_users(
+async def get_users(
     username: str | None = None,
     email: str | None = None,
     nickname: str | None = None,
     is_active: bool | None = None,
     is_verified: bool | None = None,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    return users_services.get_users(
+    return await users_services.get_users(
         db=db,
         username=username,
         email=email,
@@ -37,5 +37,5 @@ def get_users(
 
 
 @router.patch("/{user_id}/activity", response_model=user.UserResponse, status_code=200)
-def update_activity_user(data: user.UserActive, user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_admin)):
-    return users_services.user_deactive(db, user_id, data.is_active, current_user.id)
+async def update_activity_user(data: user.UserActive, user_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_admin)):
+    return await users_services.user_deactive(db, user_id, data.is_active, current_user.id)

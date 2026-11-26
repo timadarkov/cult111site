@@ -1,14 +1,17 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.info import Info
 from app.schemas.info import InfoAdd, InfoUpdate
 
 
-def get_info(db: Session) -> list[Info]:
-    return db.query(Info).filter(Info.is_visible.is_(True)).all()
+async def get_info(db: AsyncSession) -> list[Info]:
+    stmt = select(Info).where(Info.is_visible.is_(True))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
-def add_info(db: Session, data: InfoAdd):
+async def add_info(db: AsyncSession, data: InfoAdd):
     info = Info(
         slug=data.slug,
         info=data.info,
@@ -17,14 +20,15 @@ def add_info(db: Session, data: InfoAdd):
     )
 
     db.add(info)
-    db.commit()
-    db.refresh(info)
+    await db.commit()
+    await db.refresh(info)
     return info
 
 
-def update_info(db: Session, slug: str, data: InfoUpdate):
-    record = db.query(Info).filter(Info.slug == slug).first()
-
+async def update_info(db: AsyncSession, slug: str, data: InfoUpdate):
+    stmt = select(Info).where(Info.slug == slug).limit(1)
+    result = await db.execute(stmt)
+    record = result.scalars().first()
     if not record:
         return None
 
@@ -33,7 +37,7 @@ def update_info(db: Session, slug: str, data: InfoUpdate):
     for field, value in changes.items():
         setattr(record, field, value)
 
-    db.commit()
-    db.refresh(record)
+    await db.commit()
+    await db.refresh(record)
 
     return record

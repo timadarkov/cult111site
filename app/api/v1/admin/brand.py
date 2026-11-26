@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency import get_db
 from app.schemas import brand
@@ -12,30 +12,30 @@ router = APIRouter(
 
 
 @router.get("", response_model=list[brand.BrandAdminResponse])
-def get_brands_admin(
-    db: Session = Depends(get_db),
+async def get_brands_admin(
+    db: AsyncSession = Depends(get_db),
 ):
-    return brand_services.get_brands_admin(db=db)
+    return await brand_services.get_brands_admin(db=db)
 
 
 @router.post("", response_model=brand.BrandResponse, status_code=201)
-def add_brand(
+async def add_brand(
     data: brand.BrandCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    return brand_services.add_brand(
+    return await brand_services.add_brand(
         db=db,
         data=data,
     )
 
 
 @router.patch("/{brand_id}", response_model=brand.BrandAdminResponse, status_code=200)
-def edit_brand(
+async def edit_brand(
     brand_id: int,
     data: brand.BrandEdit,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    return brand_services.edit_brand(
+    return await brand_services.edit_brand(
         brand_id=brand_id,
         data=data,
         db=db,
@@ -43,12 +43,12 @@ def edit_brand(
 
 
 @router.patch("/{brand_id}/visibility", response_model=brand.BrandAdminResponse, status_code=200)
-def update_brand_visibility(
+async def update_brand_visibility(
     brand_id: int,
     data: brand.BrandVisibilityUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    return brand_services.update_brand_visibility(
+    return await brand_services.update_brand_visibility(
         db=db,
         brand_id=brand_id,
         data=data,
@@ -56,8 +56,8 @@ def update_brand_visibility(
 
 
 @router.delete("/{brand_id}", status_code=204)
-def delete_brand(
+async def delete_brand(
     brand_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    brand_services.delete_brand(db, brand_id)
+    await brand_services.delete_brand(db, brand_id)

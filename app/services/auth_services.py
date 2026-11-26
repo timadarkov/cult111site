@@ -1,6 +1,6 @@
 import jwt
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import utils
 from app.core.config import settings
@@ -8,8 +8,8 @@ from app.models.users import User
 from app.storage import users as users_storage
 
 
-def login(db: Session, username: str, password: str) -> dict[str, str]:
-    user = users_storage.get_user_by_username(db, username)
+async def login(db: AsyncSession, username: str, password: str) -> dict[str, str]:
+    user = await users_storage.get_user_by_username(db, username)
 
     if not user:
         raise HTTPException(
@@ -44,7 +44,7 @@ def login(db: Session, username: str, password: str) -> dict[str, str]:
     }
 
 
-def refresh(db: Session, refresh_token: str) -> dict[str, str]:
+async def refresh(db: AsyncSession, refresh_token: str) -> dict[str, str]:
     try:
         payload = utils.decode_jwt(
             refresh_token,
@@ -57,7 +57,7 @@ def refresh(db: Session, refresh_token: str) -> dict[str, str]:
             detail="Invalid or expired refresh token",
         )
 
-    user = users_storage.get_user_by_id(db, user_id)
+    user = await users_storage.get_user_by_id(db, user_id)
 
     if not user:
         raise HTTPException(
@@ -86,5 +86,5 @@ def refresh(db: Session, refresh_token: str) -> dict[str, str]:
     }
 
 
-def get_current_user(db: Session, current_user: User) -> User:
-    return users_storage.get_user_by_id(db, current_user.id)
+async def get_current_user(db: AsyncSession, current_user: User) -> User:
+    return await users_storage.get_user_by_id(db, current_user.id)

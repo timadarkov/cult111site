@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency import get_db
 from app.schemas import info
@@ -12,5 +12,5 @@ router = APIRouter(
 
 
 @router.get("", response_model=list[info.InfoResponse])
-def get_info(db: Session = Depends(get_db)):
-    return info_services.get_info(db=db)
+async def get_info(db: AsyncSession = Depends(get_db)):
+    return await info_services.get_info(db=db)

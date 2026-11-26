@@ -92,4 +92,9 @@ jobs:
         run: poetry run ruff check .
 
       - name: Run tests with coverage
-        run: poetry run pytest --cov=app --cov-report=term-missing
+        run: |
+          poetry run pytest \
+            --cov=app \
+            --cov-report=term-missing \
+            -W error::RuntimeWarning \
+            -W error::pytest.PytestUnraisableExceptionWarning

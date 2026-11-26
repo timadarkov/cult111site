@@ -3,11 +3,12 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
-from fastapi.testclient import TestClient
+import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import inspect, text
 from sqlalchemy.engine import URL
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 # fmt: off
 os.environ["R2_ENDPOINT"] = "https://r2.test"
@@ -43,8 +44,8 @@ class TestDatabaseSettings(BaseSettings):
     )
 
 
-@pytest.fixture(scope="session")
-def test_engine():
+@pytest_asyncio.fixture(scope="session")
+async def test_engine():
     settings = TestDatabaseSettings()
 
     if settings.test_db_name != "cult111_test":
@@ -58,7 +59,7 @@ def test_engine():
         )
 
     url = URL.create(
-        drivername="postgresql+psycopg2",
+        drivername="postgresql+asyncpg",
         username=settings.db_user,
         password=settings.db_password,
         host=settings.test_db_host,
@@ -66,76 +67,86 @@ def test_engine():
         database=settings.test_db_name,
     )
 
-    engine = create_engine(
+    engine = create_async_engine(
         url,
-        connect_args={"sslmode": "disable"},
+        connect_args={"ssl": False},
     )
 
     schema_created = False
 
     try:
-        # Проверяем настоящее имя подключённой базы
-        with engine.connect() as connection:
-            actual_database = connection.execute(
+        async with engine.connect() as connection:
+            result = await connection.execute(
                 text("SELECT current_database()")
-            ).scalar_one()
+            )
+            actual_database = result.scalar_one()
 
             if actual_database != "cult111_test":
                 raise RuntimeError(
                     "Connected to the wrong database!"
                 )
 
-        # Проверяем, что тестовая база пустая
-        inspector = inspect(engine)
-        existing_tables = inspector.get_table_names()
-
-        if existing_tables:
-            raise RuntimeError(
-                f"Test database is not empty: {existing_tables}"
+            existing_tables = await connection.run_sync(
+                lambda conn: inspect(conn).get_table_names()
             )
 
-        # Создаём таблицы
-        Base.metadata.create_all(bind=engine)
+            if existing_tables:
+                raise RuntimeError(
+                    f"Test database is not empty: {existing_tables}"
+                )
+
+        async with engine.begin() as connection:
+            await connection.run_sync(Base.metadata.create_all)
+
         schema_created = True
 
         yield engine
 
     finally:
-        if schema_created:
-            Base.metadata.drop_all(bind=engine)
-
-        engine.dispose()
-
-
-@pytest.fixture(scope="function")
-def db_session(test_engine):
-    connection = test_engine.connect()
-    transaction = connection.begin()
-
-    try:
-        with Session(
-            bind=connection,
-            join_transaction_mode="create_savepoint",
-        ) as session:
-            yield session
-    finally:
-        transaction.rollback()
-        connection.close()
+        try:
+            if schema_created:
+                async with engine.begin() as connection:
+                    await connection.run_sync(Base.metadata.drop_all)
+        finally:
+            await engine.dispose()
 
 
-@pytest.fixture(scope="function")
-def client(db_session):
+@pytest_asyncio.fixture(scope="function")
+async def db_session(test_engine):
+    async with test_engine.connect() as connection:
+        transaction = await connection.begin()
+
+        try:
+            async with AsyncSession(
+                bind=connection,
+                join_transaction_mode="create_savepoint",
+                expire_on_commit=False,
+            ) as session:
+                yield session
+
+        finally:
+            await transaction.rollback()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def client(db_session):
     from app.dependency import get_db
     from main import app
 
-    def override_get_db():
+    async def override_get_db():
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
 
     try:
-        with TestClient(app) as test_client:
+        transport = ASGITransport(app=app)
+
+        async with AsyncClient(
+            transport=transport,
+            base_url="http://test",
+        ) as test_client:
             yield test_client
+
     finally:
         app.dependency_overrides.pop(get_db, None)
 
@@ -143,12 +154,11 @@ def client(db_session):
 @pytest.fixture
 def brand_factory(db_session):
 
-    def create_brand(name, is_visible: bool = True):
-
+    async def create_brand(name, is_visible: bool = True):
         brand = Brands(name=name, is_visible=is_visible)
 
         db_session.add(brand)
-        db_session.flush()
+        await db_session.flush()
 
         return brand
 
@@ -158,12 +168,12 @@ def brand_factory(db_session):
 @pytest.fixture
 def category_factory(db_session):
 
-    def create_category(name, is_visible: bool = True):
+    async def create_category(name, is_visible: bool = True):
 
         category = Category(name=name, is_visible=is_visible)
 
         db_session.add(category)
-        db_session.flush()
+        await db_session.flush()
 
         return category
 
@@ -173,7 +183,7 @@ def category_factory(db_session):
 @pytest.fixture
 def product_factory(db_session):
 
-    def create_product(name, price, category_id, brand_id, is_visible: bool = True):
+    async def create_product(name, price, category_id, brand_id, is_visible: bool = True):
 
         product = Products(
             name=name,
@@ -185,7 +195,7 @@ def product_factory(db_session):
         )
 
         db_session.add(product)
-        db_session.flush()
+        await db_session.flush()
 
         return product
 
@@ -195,7 +205,7 @@ def product_factory(db_session):
 @pytest.fixture
 def user_factory(db_session):
 
-    def create_user(
+    async def create_user(
         username,
         password="Test12345!",
         is_active=True,
@@ -210,34 +220,34 @@ def user_factory(db_session):
         )
 
         db_session.add(user)
-        db_session.flush()
+        await db_session.flush()
 
         return user
 
     return create_user
 
 
-@pytest.fixture
-def regular_user(user_factory):
-    return user_factory(
+@pytest_asyncio.fixture
+async def regular_user(user_factory):
+    return await user_factory(
         username="regular_user",
         is_active=True,
         is_admin=False,
     )
 
 
-@pytest.fixture
-def admin_user(user_factory):
-    return user_factory(
+@pytest_asyncio.fixture
+async def admin_user(user_factory):
+    return await user_factory(
         username="admin_user",
         is_active=True,
         is_admin=True,
     )
 
 
-@pytest.fixture
-def inactive_user(user_factory):
-    return user_factory(
+@pytest_asyncio.fixture
+async def inactive_user(user_factory):
+    return await user_factory(
         username="inactive_user",
         is_active=False,
         is_admin=False,

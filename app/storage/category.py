@@ -1,14 +1,17 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.category import Category
 from app.schemas import category
 
 
-def get_categories(db: Session) -> list[Category]:
-    return db.query(Category).filter(Category.is_visible.is_(True)).all()
+async def get_categories(db: AsyncSession) -> list[Category]:
+    stmt = select(Category).where(Category.is_visible.is_(True))
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 
-def create_category(db: Session, data: category.CategoryCreate):
+def create_category(db: AsyncSession, data: category.CategoryCreate):
     category = Category(
         name=data.name,
         is_visible=data.is_visible,
@@ -17,39 +20,40 @@ def create_category(db: Session, data: category.CategoryCreate):
     return category
 
 
-def update_category_visibility(
-    db: Session,
+async def update_category_visibility(
+    db: AsyncSession,
     category_id: int,
     data: category.CategoryVisibilityUpdate,
 ) -> Category | None:
-    category = db.get(Category, category_id)
+    category = await db.get(Category, category_id)
 
     if not category:
         return None
 
     category.is_visible = data.is_visible
 
-    db.commit()
-    db.refresh(category)
+    await db.commit()
+    await db.refresh(category)
 
     return category
 
 
-def get_category_for_admin(
-    db: Session,
+async def get_category_for_admin(
+    db: AsyncSession,
     is_visible: bool | None = None,
 ) -> list[Category]:
 
-    query = db.query(Category)
+    query = select(Category)
 
     if is_visible is not None:
-        query = query.filter(Category.is_visible.is_(is_visible))
+        query = query.where(Category.is_visible.is_(is_visible))
 
-    return query.all()
+    result = await db.execute(query)
+    return list(result.scalars().all())
 
 
-def edit_category(db: Session, category_id: int, data: category.CategoryEdit) -> Category | None:
-    category = db.get(Category, category_id)
+async def edit_category(db: AsyncSession, category_id: int, data: category.CategoryEdit) -> Category | None:
+    category = await db.get(Category, category_id)
 
     if not category:
         return None
@@ -59,19 +63,19 @@ def edit_category(db: Session, category_id: int, data: category.CategoryEdit) ->
     for field, value in changes.items():
         setattr(category, field, value)
 
-    db.commit()
-    db.refresh(category)
+    await db.commit()
+    await db.refresh(category)
 
     return category
 
 
-def delete_category(db: Session, category_id: int):
-    category = db.get(Category, category_id)
+async def delete_category(db: AsyncSession, category_id: int):
+    category = await db.get(Category, category_id)
 
     if category is None:
         return None
 
-    db.delete(category)
-    db.commit()
+    await db.delete(category)
+    await db.commit()
 
     return category

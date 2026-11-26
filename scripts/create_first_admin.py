@@ -1,3 +1,4 @@
+import asyncio
 from getpass import getpass
 
 from sqlalchemy import select
@@ -7,10 +8,10 @@ from app.models.users import User
 from database import SessionLocal
 
 
-def create_first_admin() -> None:
-    with SessionLocal() as session:
-        existing_admin = session.scalar(
-            select(User).where(User.is_admin.is_(True))
+async def create_first_admin() -> None:
+    async with SessionLocal() as session:
+        existing_admin = await session.scalar(
+            select(User).where(User.is_admin.is_(True)).limit(1)
         )
 
         if existing_admin:
@@ -51,10 +52,10 @@ def create_first_admin() -> None:
         )
 
         session.add(admin)
-        session.commit()
+        await session.commit()
 
         print(f"First admin '{username}' created successfully.")
 
 
 if __name__ == "__main__":
-    create_first_admin()
+    asyncio.run(create_first_admin())

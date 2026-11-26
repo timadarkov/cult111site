@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency import get_db
 from app.schemas import image, product
@@ -12,10 +12,8 @@ router = APIRouter(
 
 
 @router.get("", response_model=list[product.ImageSchemaOut])
-def get_images(db: Session = Depends(get_db)):
-    return image_services.get_images(
-        db=db,
-    )
+async def get_images(db: AsyncSession = Depends(get_db)):
+    return await image_services.get_images(db=db)
 
 
 @router.post("/presign", response_model=image.ImagePresignResponse)

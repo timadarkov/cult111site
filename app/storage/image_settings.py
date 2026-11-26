@@ -1,32 +1,42 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.image import Images
 from app.models.product import Products
 
 
-def get_product_for_image_update(db: Session, product_id: int) -> Products | None:
-    return db.query(Products).filter(
-        Products.id == product_id,
-    ).with_for_update().first()
+async def get_product_for_image_update(
+    db: AsyncSession,
+    product_id: int,
+) -> Products | None:
+    stmt = select(Products).where(
+        Products.id == product_id
+    ).with_for_update()
+
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
 
 
-def get_product_images(db: Session, product_id: int) -> list[Images]:
-    return db.query(Images).filter(
+async def get_product_images(db: AsyncSession, product_id: int) -> list[Images]:
+    stmt = select(Images).where(
         Images.product_id == product_id,
-    ).order_by(Images.position, Images.id).all()
+    ).order_by(Images.position, Images.id)
+
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
-def update_main_image(db: Session, images: list[Images], image_id: int):
+async def update_main_image(db: AsyncSession, images: list[Images], image_id: int):
     for image in images:
         image.is_main = image.id == image_id
 
-    db.commit()
+    await db.commit()
 
 
-def update_image_order(db: Session, images: list[Images], image_ids: list[int]):
+async def update_image_order(db: AsyncSession, images: list[Images], image_ids: list[int]):
     positions = {image_id: position for position, image_id in enumerate(image_ids)}
 
     for image in images:
         image.position = positions[image.id]
 
-    db.commit()
+    await db.commit()

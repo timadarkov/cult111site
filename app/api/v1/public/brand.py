@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency import get_db
 from app.schemas import brand
@@ -12,7 +12,7 @@ router = APIRouter(
 
 
 @router.get("", response_model=list[brand.BrandResponse])
-def get_brands(
-    db: Session = Depends(get_db),
+async def get_brands(
+    db: AsyncSession = Depends(get_db),
 ):
-    return brand_services.get_brands(db=db)
+    return await brand_services.get_brands(db=db)

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency import get_db
 from app.schemas import category
@@ -12,5 +12,5 @@ router = APIRouter(
 
 
 @router.get("", response_model=list[category.CategoryResponse])
-def get_categories(db: Session = Depends(get_db)):
-    return category_services.get_categories(db=db)
+async def get_categories(db: AsyncSession = Depends(get_db)):
+    return await category_services.get_categories(db=db)
