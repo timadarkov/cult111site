@@ -2,7 +2,7 @@ import uuid
 
 from botocore.exceptions import ClientError
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.schemas import image as image_schema
@@ -32,8 +32,8 @@ def create_presigned_upload(data: image_schema.ImagePresignRequest):
     )
 
 
-def register_image(
-        db: Session,
+async def register_image(
+        db: AsyncSession,
         data: image_schema.ImageCreate,
         product_id: int,
 ):
@@ -61,20 +61,20 @@ def register_image(
             detail="Image is too big",
         )
 
-    get_product_by_id(db, product_id)
-    return image.create_image(db, product_id, data.key)
+    await get_product_by_id(db, product_id)
+    return await image.create_image(db, product_id, data.key)
 
 
-def get_images(db: Session):
-    return image.get_images(db)
+async def get_images(db: AsyncSession):
+    return await image.get_images(db)
 
 
-def delete_image(
-    db: Session,
+async def delete_image(
+    db: AsyncSession,
     image_id: int,
     product_id: int,
 ):
-    image_obj = image.get_image(db, image_id, product_id)
+    image_obj = await image.get_image(db, image_id, product_id)
 
     if not image_obj:
         raise HTTPException(
@@ -84,7 +84,7 @@ def delete_image(
 
     r2.delete_object(image_obj.key)
 
-    return image.delete_image(
+    return await image.delete_image(
         db,
         image_obj=image_obj,
     )

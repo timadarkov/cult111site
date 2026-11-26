@@ -1,15 +1,18 @@
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.image import Images
 
 
-def get_images(db: Session) -> list[Images]:
-    return db.query(Images).filter(Images.is_visible.is_(True)).all()
+async def get_images(db: AsyncSession) -> list[Images]:
+    stmt = select(Images).where(Images.is_visible.is_(True))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
-def create_image(
-    db: Session,
+async def create_image(
+    db: AsyncSession,
     product_id: int,
     key: str,
 ):
@@ -19,27 +22,35 @@ def create_image(
     )
 
     db.add(image)
-    db.commit()
-    db.refresh(image)
+    await db.commit()
+    await db.refresh(image)
 
     return image
 
 
-def get_image(db: Session, image_id: int, product_id: int) -> Images:
-    image = db.query(Images).filter(
+async def get_image(
+    db: AsyncSession,
+    image_id: int,
+    product_id: int,
+) -> Images:
+    stmt = select(Images).where(
         Images.id == image_id,
-        Images.product_id == product_id
-    ).first()
+        Images.product_id == product_id,
+    )
+
+    result = await db.execute(stmt)
+    image = result.scalar_one_or_none()
 
     if not image:
         raise HTTPException(
             status_code=404,
             detail="Image not found",
         )
-    return db.get(Images, image_id)
+
+    return image
 
 
-def delete_image(db: Session, image_obj: Images):
-    db.delete(image_obj)
-    db.commit()
+async def delete_image(db: AsyncSession, image_obj: Images):
+    await db.delete(image_obj)
+    await db.commit()
     return image_obj

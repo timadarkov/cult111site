@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency import get_db
 from app.schemas import image_copy, image_settings, product
@@ -17,33 +17,33 @@ router = APIRouter(
 
 
 @router.post("", response_model=product.ProductSchemaOut, status_code=201)
-def add_product(
+async def add_product(
     data: product.ProductCreate,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
-    return product_services.add_product(
+    return await product_services.add_product(
         db=db,
         data=data,
     )
 
 
 @router.get("", response_model=list[product.ProductAdminResponse])
-def get_product_admin(db: Session = Depends(get_db)):
-    return product_services.get_product_admin(db=db)
+async def get_product_admin(db: AsyncSession = Depends(get_db)):
+    return await product_services.get_product_admin(db=db)
 
 
 @router.get("/{product_id}", response_model=product.ProductAdminResponse)
-def get_product_by_id_admin(product_id: int, db: Session = Depends(get_db)):
-    return product_services.get_product_by_id_admin(db=db, product_id=product_id)
+async def get_product_by_id_admin(product_id: int, db: AsyncSession = Depends(get_db)):
+    return await product_services.get_product_by_id_admin(db=db, product_id=product_id)
 
 
 @router.patch("/{product_id}/visibility", response_model=product.ProductAdminResponse, status_code=200)
-def update_product_visibility(
+async def update_product_visibility(
     product_id: int,
     data: product.ProductVisibilityUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    return product_services.update_product_visibility(
+    return await product_services.update_product_visibility(
         db=db,
         product_id=product_id,
         data=data,
@@ -51,12 +51,12 @@ def update_product_visibility(
 
 
 @router.patch("/{product_id}", response_model=product.ProductAdminResponse)
-def edit_product(
+async def edit_product(
     product_id: int,
     data: product.ProductEdit,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    return product_services.edit_product(
+    return await product_services.edit_product(
         db=db,
         product_id=product_id,
         data=data,
@@ -64,21 +64,21 @@ def edit_product(
 
 
 @router.delete("/{product_id}/images/{image_id}", status_code=204)
-def delete_image(
+async def delete_image(
     product_id: int,
     image_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    image_services.delete_image(db, image_id, product_id)
+    await image_services.delete_image(db, image_id, product_id)
 
 
 @router.post("/{product_id}/images", response_model=product.ProductImageAdd, status_code=201)
-def add_product_image(
+async def add_product_image(
     data: product.ProductImageAdd,
     product_id: int,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
-    return image_services.register_image(
+    return await image_services.register_image(
         db=db,
         data=data,
         product_id=product_id,
@@ -86,12 +86,12 @@ def add_product_image(
 
 
 @router.patch("/{product_id}/images/main", status_code=204)
-def update_main_image(
+async def update_main_image(
     product_id: int,
     data: image_settings.ImageMainUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    image_settings_services.update_main_image(
+    await image_settings_services.update_main_image(
         db=db,
         product_id=product_id,
         data=data,
@@ -99,12 +99,12 @@ def update_main_image(
 
 
 @router.patch("/{product_id}/images/order", status_code=204)
-def update_image_order(
+async def update_image_order(
     product_id: int,
     data: image_settings.ImageOrderUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    image_settings_services.update_image_order(
+    await image_settings_services.update_image_order(
         db=db,
         product_id=product_id,
         data=data,
@@ -112,12 +112,12 @@ def update_image_order(
 
 
 @router.post("/{product_id}/images/copy", response_model=image_copy.ImageCopyResponse, status_code=201)
-def copy_product_image(
+async def copy_product_image(
     product_id: int,
     data: image_copy.ImageCopyRequest,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    return image_copy_services.copy_product_image(
+    return await image_copy_services.copy_product_image(
         db=db,
         product_id=product_id,
         data=data,
@@ -125,8 +125,8 @@ def copy_product_image(
 
 
 @router.delete("/{product_id}", status_code=204)
-def delete_product(
+async def delete_product(
     product_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    product_services.delete_product(db, product_id)
+    await product_services.delete_product(db, product_id)

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependency import get_db
 from app.schemas import info
@@ -12,23 +12,23 @@ router = APIRouter(
 
 
 @router.post("", response_model=info.InfoAdminResponse, status_code=201)
-def add_info(
+async def add_info(
     data: info.InfoAdd,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
-    return info_services.add_info(
+    return await info_services.add_info(
         data=data,
         db=db,
     )
 
 
 @router.patch("/{slug}", response_model=info.InfoUpdate)
-def update_info(
+async def update_info(
     slug: str,
     data: info.InfoUpdate,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
-    return info_services.update_info(
+    return await info_services.update_info(
         slug=slug,
         data=data,
         db=db,

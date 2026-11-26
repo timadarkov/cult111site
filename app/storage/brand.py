@@ -1,27 +1,31 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.brand import Brands
 from app.schemas.brand import BrandCreate, BrandEdit, BrandVisibilityUpdate
 
 
-def get_brands(db: Session) -> list[Brands]:
-    return db.query(Brands).filter(Brands.is_visible.is_(True)).all()
+async def get_brands(db: AsyncSession) -> list[Brands]:
+    stmt = select(Brands).where(Brands.is_visible.is_(True))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
-def get_brands_for_admin(
-    db: Session,
+async def get_brands_for_admin(
+    db:  AsyncSession,
     is_visible: bool | None = None,
 ) -> list[Brands]:
 
-    query = db.query(Brands)
+    stmt = select(Brands)
 
     if is_visible is not None:
-        query = query.filter(Brands.is_visible.is_(is_visible))
+        stmt = stmt.where(Brands.is_visible.is_(is_visible))
 
-    return query.all()
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
-def create_brand(db: Session, data: BrandCreate):
+def create_brand(db: AsyncSession, data: BrandCreate):
     brand = Brands(
         name=data.name,
         is_visible=data.is_visible,
@@ -30,30 +34,30 @@ def create_brand(db: Session, data: BrandCreate):
     return brand
 
 
-def update_brand_visibility(
-    db: Session,
+async def update_brand_visibility(
+    db: AsyncSession,
     brand_id: int,
     data: BrandVisibilityUpdate,
 ) -> Brands | None:
-    brand = db.get(Brands, brand_id)
+    brand = await db.get(Brands, brand_id)
 
     if not brand:
         return None
 
     brand.is_visible = data.is_visible
 
-    db.commit()
-    db.refresh(brand)
+    await db.commit()
+    await db.refresh(brand)
 
     return brand
 
 
-def edit_brand(
-    db: Session,
+async def edit_brand(
+    db: AsyncSession,
     brand_id: int,
     data: BrandEdit,
 ) -> Brands | None:
-    brand = db.get(Brands, brand_id)
+    brand = await db.get(Brands, brand_id)
 
     if not brand:
         return None
@@ -63,19 +67,19 @@ def edit_brand(
     for field, value in changes.items():
         setattr(brand, field, value)
 
-    db.commit()
-    db.refresh(brand)
+    await db.commit()
+    await db.refresh(brand)
 
     return brand
 
 
-def delete_brand(db: Session, brand_id: int):
-    brand = db.get(Brands, brand_id)
+async def delete_brand(db: AsyncSession, brand_id: int):
+    brand = await db.get(Brands, brand_id)
 
     if brand is None:
         return None
 
-    db.delete(brand)
-    db.commit()
+    await db.delete(brand)
+    await db.commit()
 
     return brand

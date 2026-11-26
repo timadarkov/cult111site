@@ -1,56 +1,60 @@
 
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.models.product import Products
 from app.schemas import product
 
 
-def get_products(db: Session, category_id: int | None = None, brand_id: int | None = None) -> list[Products]:
+async def get_products(db: AsyncSession, category_id: int | None = None, brand_id: int | None = None) -> list[Products]:
 
-    query = db.query(Products).options(selectinload(
-        Products.images)).filter(Products.is_visible.is_(True))
+    stmt = select(Products).options(selectinload(
+        Products.images)).where(Products.is_visible.is_(True))
 
     if category_id:
 
-        query = query.filter(Products.category_id == category_id)
+        stmt = stmt.where(Products.category_id == category_id)
 
     if brand_id:
 
-        query = query.filter(Products.brand_id == brand_id)
+        stmt = stmt.where(Products.brand_id == brand_id)
 
-    return query.all()
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
-def get_product_by_id(db: Session, id: int) -> Products | None:
+async def get_product_by_id(db: AsyncSession, id: int) -> Products | None:
     return (
-        db.query(Products)
-        .options(selectinload(Products.images))
-        .filter(Products.id == id)
-        .filter(Products.is_visible.is_(True))
-        .first()
-    )
+        await db.execute(
+            select(Products)
+            .options(selectinload(Products.images))
+            .where(Products.id == id)
+            .where(Products.is_visible.is_(True))
+        )
+    ).scalars().first()
 
 
-def get_product_by_id_admin(
-    db: Session,
+async def get_product_by_id_admin(
+    db: AsyncSession,
     product_id: int,
 ) -> Products | None:
     return (
-        db.query(Products)
-        .options(selectinload(Products.images))
-        .filter(Products.id == product_id)
-        .first()
-    )
+        await db.execute(
+            select(Products)
+            .options(selectinload(Products.images))
+            .where(Products.id == product_id)
+        )
+    ).scalars().first()
 
 
-def get_product_admin(db: Session) -> list[Products]:
-    query = db.query(Products).options(
-        selectinload(Products.images)
-    )
-    return query.all()
+async def get_product_admin(db: AsyncSession) -> list[Products]:
+    stmt = select(Products).options(selectinload(Products.images))
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
 
 
-def create_product(db: Session, data: product.ProductCreate):
+async def create_product(db: AsyncSession, data: product.ProductCreate):
     product = Products(
         name=data.name,
         description=data.description,
@@ -60,8 +64,8 @@ def create_product(db: Session, data: product.ProductCreate):
     )
 
     db.add(product)
-    db.commit()
-    db.refresh(
+    await db.commit()
+    await db.refresh(
         product,
         attribute_names=[
             "id",
@@ -77,20 +81,20 @@ def create_product(db: Session, data: product.ProductCreate):
     return product
 
 
-def update_product_visibility(
-    db: Session,
+async def update_product_visibility(
+    db: AsyncSession,
     product_id: int,
     data: product.ProductVisibilityUpdate,
 ) -> Products | None:
-    product = db.get(Products, product_id)
+    product = await db.get(Products, product_id)
 
     if not product:
         return None
 
     product.is_visible = data.is_visible
 
-    db.commit()
-    db.refresh(
+    await db.commit()
+    await db.refresh(
         product,
         attribute_names=[
             "id",
@@ -106,8 +110,8 @@ def update_product_visibility(
     return product
 
 
-def edit_product(db: Session, product_id: int, data: product.ProductEdit) -> Products | None:
-    product = db.get(Products, product_id)
+async def edit_product(db: AsyncSession, product_id: int, data: product.ProductEdit) -> Products | None:
+    product = await db.get(Products, product_id)
 
     if not product:
         return None
@@ -120,8 +124,8 @@ def edit_product(db: Session, product_id: int, data: product.ProductEdit) -> Pro
     for field, value in changes.items():
         setattr(product, field, value)
 
-    db.commit()
-    db.refresh(
+    await db.commit()
+    await db.refresh(
         product,
         attribute_names=[
             "id",
@@ -137,15 +141,15 @@ def edit_product(db: Session, product_id: int, data: product.ProductEdit) -> Pro
     return product
 
 
-def delete_product(db: Session, product_id: int):
-    product = db.get(Products, product_id)
+async def delete_product(db: AsyncSession, product_id: int):
+    product = await db.get(Products, product_id)
 
     if product is None:
         return None
 
     product.is_visible = False
 
-    db.commit()
-    db.refresh(product)
+    await db.commit()
+    await db.refresh(product)
 
     return product

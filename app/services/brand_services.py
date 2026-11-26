@@ -1,6 +1,7 @@
 from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.brand import Brands
 from app.models.product import Products
@@ -8,49 +9,49 @@ from app.schemas.brand import BrandCreate, BrandEdit, BrandVisibilityUpdate
 from app.storage import brand as brand_storage
 
 
-def get_brands(db: Session):
-    return brand_storage.get_brands(db)
+async def get_brands(db: AsyncSession):
+    return await brand_storage.get_brands(db)
 
 
-def get_brands_admin(db: Session):
-    return brand_storage.get_brands_for_admin(db)
+async def get_brands_admin(db: AsyncSession):
+    return await brand_storage.get_brands_for_admin(db)
 
 
-def add_brand(db: Session, data: BrandCreate):
+async def add_brand(db: AsyncSession, data: BrandCreate):
     try:
         brand = brand_storage.create_brand(db, data)
-        db.commit()
-        db.refresh(brand)
+        await db.commit()
+        await db.refresh(brand)
         return brand
     except IntegrityError:
-        db.rollback()
+        await db.rollback()
         raise HTTPException(
             status_code=409,
             detail="Brand name already exists",
         )
 
 
-def update_brand_visibility(db: Session, brand_id: int, data: BrandVisibilityUpdate):
-    return brand_storage.update_brand_visibility(db, brand_id, data)
+async def update_brand_visibility(db: AsyncSession, brand_id: int, data: BrandVisibilityUpdate):
+    return await brand_storage.update_brand_visibility(db, brand_id, data)
 
 
-def edit_brand(db: Session, brand_id: int, data: BrandEdit):
+async def edit_brand(db: AsyncSession, brand_id: int, data: BrandEdit):
     try:
-        return brand_storage.edit_brand(
+        return await brand_storage.edit_brand(
             brand_id=brand_id,
             data=data,
             db=db,
         )
     except IntegrityError:
-        db.rollback()
+        await db.rollback()
         raise HTTPException(
             status_code=409,
             detail="Brand name already exists",
         )
 
 
-def delete_brand(db: Session, brand_id: int):
-    brand = db.get(Brands, brand_id)
+async def delete_brand(db: AsyncSession, brand_id: int):
+    brand = await db.get(Brands, brand_id)
 
     if brand is None:
         raise HTTPException(
@@ -58,14 +59,17 @@ def delete_brand(db: Session, brand_id: int):
             detail="Brand not found",
         )
 
-    has_products = db.query(Products.id).filter(
+    stmt = select(Products.id).where(
         Products.brand_id == brand_id
-    ).first()
+    ).limit(1)
 
-    if has_products:
+    result = await db.execute(stmt)
+    has_products = result.scalar_one_or_none()
+
+    if has_products is not None:
         raise HTTPException(
             status_code=409,
             detail="Cannot delete brand with products",
         )
 
-    return brand_storage.delete_brand(db, brand_id)
+    return await brand_storage.delete_brand(db, brand_id)

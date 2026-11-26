@@ -7,7 +7,7 @@ from app.storage.product import get_product_admin
 
 
 @pytest.mark.parametrize("product_count", [1, 10, 100])
-def test_product_list_no_n_plus_one(
+async def test_product_list_no_n_plus_one(
     db_session,
     test_engine,
     brand_factory,
@@ -15,11 +15,11 @@ def test_product_list_no_n_plus_one(
     product_factory,
     product_count,
 ):
-    brand = brand_factory("N1 Brand")
-    category = category_factory("N1 Category")
+    brand = await brand_factory("N1 Brand")
+    category = await category_factory("N1 Category")
 
     for i in range(product_count):
-        product = product_factory(
+        product = await product_factory(
             name=f"Product {i}",
             price=100,
             category_id=category.id,
@@ -35,7 +35,7 @@ def test_product_list_no_n_plus_one(
             )
         )
 
-    db_session.flush()
+    await db_session.flush()
     db_session.expire_all()
 
     queries = []
@@ -44,10 +44,10 @@ def test_product_list_no_n_plus_one(
         if statement.lstrip().upper().startswith("SELECT"):
             queries.append(statement)
 
-    event.listen(test_engine, "before_cursor_execute", count_queries)
+    event.listen(test_engine.sync_engine, "before_cursor_execute", count_queries)
 
     try:
-        products = get_product_admin(db_session)
+        products = await get_product_admin(db_session)
 
         responses = [
             ProductAdminResponse.model_validate(product)
@@ -56,7 +56,7 @@ def test_product_list_no_n_plus_one(
         assert all(len(response.images) == 1 for response in responses)
 
     finally:
-        event.remove(test_engine, "before_cursor_execute", count_queries)
+        event.remove(test_engine.sync_engine, "before_cursor_execute", count_queries)
 
     assert len(products) == product_count
     assert len(responses) == product_count

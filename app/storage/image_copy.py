@@ -1,13 +1,16 @@
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.image import Images
 
 
-def get_image_for_copy(db: Session, image_id: int) -> Images | None:
-    return db.query(Images).filter(
+async def get_image_for_copy(db: AsyncSession, image_id: int) -> Images | None:
+    stmt = select(Images).where(
         Images.id == image_id,
         Images.is_visible.is_(True),
-    ).first()
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
 
 
 def copy_image_file(source_key: str, key: str):
@@ -22,8 +25,8 @@ def delete_image_file(key: str):
     r2.delete_object(key)
 
 
-def create_image_copy(
-    db: Session,
+async def create_image_copy(
+    db: AsyncSession,
     product_id: int,
     key: str,
     position: int,
@@ -36,5 +39,5 @@ def create_image_copy(
         is_main=is_main,
     )
     db.add(image)
-    db.flush()
+    await db.flush()
     return image

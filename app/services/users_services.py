@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.utils import hash_password
 from app.models.users import User
@@ -8,7 +8,7 @@ from app.schemas import user
 from app.storage import users as users_storage
 
 
-def create_users(db: Session, user: user.UserCreate):
+async def create_users(db: AsyncSession, user: user.UserCreate):
 
     hashed_password = hash_password(user.password)
     user = User(
@@ -19,26 +19,26 @@ def create_users(db: Session, user: user.UserCreate):
     )
     try:
         db_user = users_storage.add_user(db, user)
-        db.commit()
-        db.refresh(db_user)
+        await db.commit()
+        await db.refresh(db_user)
         return db_user
     except IntegrityError:
-        db.rollback()
+        await db.rollback()
         raise HTTPException(
             status_code=409,
             detail="Username already exists",
         )
 
 
-def get_users(
-    db: Session,
+async def get_users(
+    db: AsyncSession,
     username: str,
     email: str,
     nickname: str,
     is_active: bool | None = None,
     is_verified: bool | None = None,
 ):
-    return users_storage.get_users(
+    return await users_storage.get_users(
         db,
         username=username,
         email=email,
@@ -48,12 +48,12 @@ def get_users(
     )
 
 
-def get_user_by_username(db: Session, username: str):
-    return users_storage.get_user_by_username(db, username)
+async def get_user_by_username(db: AsyncSession, username: str):
+    return await users_storage.get_user_by_username(db, username)
 
 
-def user_deactive(
-    db: Session,
+async def user_deactive(
+    db: AsyncSession,
     user_id: int,
     is_active: bool,
     current_user_id: int,
@@ -64,7 +64,7 @@ def user_deactive(
             detail="You cannot deactivate yourself",
         )
 
-    user = users_storage.user_deactive(db, user_id, is_active)
+    user = await users_storage.user_deactive(db, user_id, is_active)
 
     if user is None:
         raise HTTPException(

@@ -3,13 +3,13 @@ name = "cult111site"
 version = "0.1.0"
 description = "Backend API for CULT111 store"
 requires-python = ">=3.14,<3.15"
-dependencies = ["fastapi (==0.125.0)", "uvicorn (==0.38.0)", "sqlalchemy (==2.0.45)", "psycopg2-binary (==2.9.12)", "alembic (==1.20.0)", "pydantic (==2.12.5)", "pydantic-settings (==2.15.0)", "pyjwt[crypto] (==2.15.1)", "bcrypt (==5.0.0)", "boto3 (==1.43.72)", "slowapi (==0.1.10)", "email-validator (==2.3.0)", "botocore (==1.43.114)"]
+dependencies = ["fastapi (==0.125.0)", "uvicorn (==0.38.0)", "sqlalchemy[asyncio] (==2.0.45)", "psycopg2-binary (==2.9.12)", "alembic (==1.20.0)", "pydantic (==2.12.5)", "pydantic-settings (==2.15.0)", "pyjwt[crypto] (==2.15.1)", "bcrypt (==5.0.0)", "boto3 (==1.43.72)", "slowapi (==0.1.10)", "email-validator (==2.3.0)", "botocore (==1.43.114)", "asyncpg (>=0.32.0,<0.33.0)"]
 
 [tool.poetry]
 package-mode = false
 
 [dependency-groups]
-dev = ["pytest (>=9.1.1,<10.0.0)", "pytest-asyncio (>=1.4.0,<2.0.0)", "httpx (>=0.28.1,<0.29.0)", "pytest-cov (>=7.1.0,<8.0.0)", "ruff (>=0.17.5,<0.18.0)"]
+dev = ["pytest (>=9.1.1,<10.0.0)", "pytest-asyncio (>=1.4.0,<2.0.0)", "httpx (>=0.28.1,<0.29.0)", "pytest-cov (>=7.1.0,<8.0.0)", "ruff (>=0.17.5,<0.18.0)", "aiosqlite (>=0.22.1,<0.23.0)"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -17,6 +17,9 @@ pythonpath = ["."]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
 addopts = "-ra"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 
 [tool.coverage.run]
 source = ["app"]
@@ -38,4 +41,3 @@ select = ["E4", "E7", "E9", "F", "I"]
 "app/models/__init__.py" = ["F401"]
 "alembic/env.py" = ["F401"]
 "tests/conftest.py" = ["F401"]
-
