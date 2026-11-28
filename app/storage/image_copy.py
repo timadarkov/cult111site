@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.image import Images
+from app.storage import r2
 
 
 async def get_image_for_copy(db: AsyncSession, image_id: int) -> Images | None:
@@ -13,16 +14,12 @@ async def get_image_for_copy(db: AsyncSession, image_id: int) -> Images | None:
     return result.scalar_one_or_none()
 
 
-def copy_image_file(source_key: str, key: str):
-    from app.storage import r2
-
-    r2.copy_object(source_key, key)
+async def copy_image_file(source_key: str, key: str):
+    await r2.copy_object(source_key, key)
 
 
-def delete_image_file(key: str):
-    from app.storage import r2
-
-    r2.delete_object(key)
+async def delete_image_file(key: str):
+    await r2.delete_object(key)
 
 
 async def create_image_copy(

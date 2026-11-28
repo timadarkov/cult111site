@@ -33,7 +33,7 @@ async def copy_product_image(
     key = f"products/{uuid.uuid4()}{PurePosixPath(source.key).suffix}"
 
     try:
-        image_copy_storage.copy_image_file(source.key, key)
+        await image_copy_storage.copy_image_file(source.key, key)
     except Exception as error:
         await db.rollback()
         raise HTTPException(status_code=502, detail="Could not copy image in storage") from error
@@ -51,7 +51,7 @@ async def copy_product_image(
     except Exception:
         await db.rollback()
         try:
-            image_copy_storage.delete_image_file(key)
+            await image_copy_storage.delete_image_file(key)
         except Exception:
             logger.exception("Could not remove unused image copy: %s", key)
         raise

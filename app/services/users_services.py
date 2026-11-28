@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +12,7 @@ from app.storage import users as users_storage
 
 async def create_users(db: AsyncSession, user: user.UserCreate):
 
-    hashed_password = hash_password(user.password)
+    hashed_password = await asyncio.to_thread(hash_password, user.password)
     user = User(
         username=user.username,
         email=user.email,
