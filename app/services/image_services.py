@@ -16,16 +16,18 @@ ALLOWED_TYPES = {
 }
 
 
-def create_presigned_upload(data: image_schema.ImagePresignRequest):
+async def create_presigned_upload(data: image_schema.ImagePresignRequest):
     if data.content_type not in ALLOWED_TYPES:
         raise HTTPException(
             status_code=422,
             detail="Invalid content type",
         )
+
     extension = ALLOWED_TYPES[data.content_type]
     key = f"products/{uuid.uuid4()}.{extension}"
 
-    upload_url = r2.create_presigned_put(key, data.content_type)
+    upload_url = await r2.create_presigned_put(key, data.content_type)
+
     return image_schema.ImagePresignResponse(
         upload_url=upload_url,
         key=key,
@@ -44,7 +46,7 @@ async def register_image(
         )
 
     try:
-        object_info = r2.get_object_info(data.key)
+        object_info = await r2.get_object_info(data.key)
     except ClientError:
         raise HTTPException(
             status_code=404,
@@ -82,7 +84,7 @@ async def delete_image(
             detail="Image not found",
         )
 
-    r2.delete_object(image_obj.key)
+    await r2.delete_object(image_obj.key)
 
     return await image.delete_image(
         db,

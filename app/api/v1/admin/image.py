@@ -17,7 +17,7 @@ async def get_images(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/presign", response_model=image.ImagePresignResponse)
-def presign_image(
+async def presign_image(
     data: image.ImagePresignRequest,
 ):
-    return image_services.create_presigned_upload(data=data)
+    return await image_services.create_presigned_upload(data=data)

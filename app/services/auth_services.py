@@ -1,3 +1,5 @@
+import asyncio
+
 import jwt
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,7 +19,13 @@ async def login(db: AsyncSession, username: str, password: str) -> dict[str, str
             detail="Invalid username or password",
         )
 
-    if not utils.verify_password(password, user.password_hash):
+    password_valid = await asyncio.to_thread(
+        utils.verify_password,
+        password,
+        user.password_hash,
+    )
+
+    if not password_valid:
         raise HTTPException(
             status_code=401,
             detail="Invalid username or password",

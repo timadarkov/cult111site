@@ -1,3 +1,5 @@
+import asyncio
+
 import boto3
 
 from app.core.config import settings
@@ -11,8 +13,9 @@ s3 = boto3.client(
 )
 
 
-def create_presigned_put(key: str, content_type: str) -> str:
-    return s3.generate_presigned_url(
+async def create_presigned_put(key: str, content_type: str) -> str:
+    return await asyncio.to_thread(
+        s3.generate_presigned_url,
         "put_object",
         Params={
             "Bucket": settings.r2_bucket,
@@ -23,22 +26,25 @@ def create_presigned_put(key: str, content_type: str) -> str:
     )
 
 
-def get_object_info(key: str):
-    return s3.head_object(
+async def get_object_info(key: str):
+    return await asyncio.to_thread(
+        s3.head_object,
         Bucket=settings.r2_bucket,
         Key=key,
     )
 
 
-def delete_object(key: str):
-    s3.delete_object(
+async def delete_object(key: str):
+    await asyncio.to_thread(
+        s3.delete_object,
         Bucket=settings.r2_bucket,
         Key=key,
     )
 
 
-def copy_object(source_key: str, key: str):
-    s3.copy_object(
+async def copy_object(source_key: str, key: str):
+    await asyncio.to_thread(
+        s3.copy_object,
         Bucket=settings.r2_bucket,
         CopySource={
             "Bucket": settings.r2_bucket,
